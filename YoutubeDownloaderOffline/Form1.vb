@@ -45,6 +45,10 @@ Public Class Form1
     Dim ConvertDownloadedVidInfo As New ProcessStartInfo(Application.StartupPath & "\ffmpeg.exe")
     Dim SameSelectedFormat As String
     Dim CheckVersion As StreamReader
+    Public CurrentVersion As String
+    Public NewVersion As String
+    Public CurrentVDate As String
+    Public NewVDate As String
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Label3.Text = ""
         Label4.Text = ""
@@ -58,6 +62,42 @@ Public Class Form1
         firstVid = True
         DownloadRunning = "FALSE"
 
+        If File.Exists(Application.StartupPath & "\config.txt") Then
+            CheckVersion = New StreamReader(Application.StartupPath & "\config.txt")
+            Dim VersionContents As String
+            VersionContents = CheckVersion.ReadToEnd()
+            CheckVersion.Close()
+            Dim output1() As String
+            output1 = VersionContents.Split(":")
+            CurrentVersion = output1(0)
+            CurrentVDate = output1(1)
+            If My.Computer.Network.Ping("serverwebsite.ddns.net") Then
+                If File.Exists(Application.StartupPath & "\remoteversion.txt") Then
+                    File.Delete(Application.StartupPath & "\remoteversion.txt")
+                End If
+                My.Computer.Network.DownloadFile("ftp://serverwebsite.ddns.net/downloads/youtubedownload/remoteversion.txt", Application.StartupPath & "\remoteversion.txt")
+                CheckVersion = New StreamReader(Application.StartupPath & "\remoteversion.txt")
+                Dim NewVersionContents As String
+                NewVersionContents = CheckVersion.ReadToEnd()
+                CheckVersion.Close()
+                Dim output2() As String
+                output2 = NewVersionContents.Split(":")
+                NewVersion = output2(0)
+                NewVDate = output2(1)
+                If output1(0) = output2(0) Then
+
+                Else
+                    Dim reply As DialogResult = MessageBox.Show("A new version, " & output2(0) & " is available, from " & output2(1) & ". Would you like to update?", "Update available", MessageBoxButtons.YesNoCancel)
+                    If reply = DialogResult.Yes Then
+                        Form2.ShowDialog()
+                    End If
+                End If
+            Else
+                MsgBox("Cannot contact update server")
+            End If
+        Else
+            MsgBox("Cannot find config.txt file")
+        End If
     End Sub
 
     Private Sub TextBox1_TextChanged(sender As Object, e As EventArgs) Handles TextBox1.TextChanged
