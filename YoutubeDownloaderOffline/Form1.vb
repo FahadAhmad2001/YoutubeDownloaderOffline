@@ -35,7 +35,7 @@ Public Class Form1
     Dim HasSelectedQuality As String
     Dim AutoVideoDownloader As Thread
     Dim DownloadRunning As String
-    Dim NormalDownload As New Process()
+    Dim WithEvents NormalDownload As New Process()
     Dim NormalDownloadInfo As New ProcessStartInfo(Application.StartupPath & "\NormalDownload.bat")
     Dim ETA As String
     Dim CurrentProgress As String
@@ -342,13 +342,23 @@ EndStart:
         NormalDownloadInfo.UseShellExecute = False
         NormalDownloadInfo.WindowStyle = ProcessWindowStyle.Hidden
         NormalDownloadInfo.RedirectStandardOutput = True
-        NormalDownloadInfo.RedirectStandardError = True
+        'NormalDownloadInfo.RedirectStandardError = True
         NormalDownload.StartInfo = NormalDownloadInfo
+        AddHandler NormalDownload.OutputDataReceived, AddressOf NewOutputReader
         NormalDownload.Start()
+        NormalDownload.BeginOutputReadLine()
         EditLogs = New StreamWriter(Application.StartupPath & "\downloadlog.txt")
-        Dim OutputReader As StreamReader = NormalDownload.StandardOutput
-        ReadOutput(OutputReader)
+        'Dim OutputReader As StreamReader = NormalDownload.StandardOutput
+        'Dim ErrorReader As StreamReader = NormalDownload.StandardError
+        'ErrorRead(ErrorReader)
+        'ReadOutput(OutputReader)
         'MsgBox("reading output")
+        Dim output2 As String
+        Dim error2 As String
+        'error2 = NormalDownload.StandardError.ReadToEnd()
+        'output2 = NormalDownload.StandardOutput.ReadToEnd()
+        'MsgBox("OUTPUT:" & output2)
+        'MsgBox("ERROR:" & error2)
         NormalDownload.WaitForExit()
         NormalDownload.Close()
         EditLogs.Close()
@@ -370,7 +380,7 @@ EndStart:
             If File.Exists(Application.StartupPath & "\" & FileNameToSave & ".mp4") Then
                 File.Copy(Application.StartupPath & "\" & FileNameToSave & ".mp4", My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & FileNameToSave & ".mp4")
             Else
-                MsgBox("Error in downloading the video, please contact support@serverwebsite.ddns.net")
+                MsgBox("Error in downloading/converting the video, please contact support@serverwebsite.ddns.net")
             End If
         Else
             If SameSelectedFormat.Contains("mp4") Then
@@ -393,11 +403,12 @@ EndStart:
         End If
 
         NeedToConvert = ""
+
+        MsgBox("Download completed")
+EndDownloading:
         DownloadRunning = "FALSE"
         ProgressBar1.Value = 0
         Label7.Text = ""
-        MsgBox("Download completed")
-EndDownloading:
         AutoVideoDownloader.Abort()
     End Sub
     Private Async Sub ReadOutput(OutputReader As StreamReader)
@@ -430,9 +441,9 @@ EndDownloading:
                 MsgBox("Naming")
                 Dim output1() As String
                 output1 = Regex.Split(newline, "[download] Destination: ")
-                ' MsgBox("trimmed output, ")
+                MsgBox("trimmed output, ")
 
-                'MsgBox(output1(0))
+                MsgBox(output1(0))
                 Dim output2() As String
                 Dim CutText As String
                 If newline.Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
@@ -448,7 +459,7 @@ EndDownloading:
                 End If
                 output3 = Regex.Split(FileNameToSave, "Destination: ")
                 FileNameToSave = output3(1)
-                'MsgBox("File Name " & FileNameToSave)
+                MsgBox("File Name " & FileNameToSave)
                 If NeedToConvert = "TRUE" Then
 
                 Else
@@ -457,5 +468,56 @@ EndDownloading:
             End If
         End If
         ReadOutput(OutputReader)
+    End Sub
+    Private Async Sub ErrorRead(ErrorReader As StreamReader)
+        Dim newerrorline As String = Await ErrorReader.ReadLineAsync()
+        If newerrorline IsNot Nothing Then
+            MsgBox(newerrorline)
+        End If
+        ErrorRead(ErrorReader)
+    End Sub
+    Private Sub NewOutputReader(sendingProcess As Object, output As DataReceivedEventArgs)
+        'MsgBox(output.Data)
+        If Not String.IsNullOrEmpty(output.Data) Then
+            'MsgBox(output.Data)
+            EditLogs.WriteLine(output.Data)
+            If output.Data.ToString().Contains("[download] Destination: ") Then
+                Dim output3() As String
+                output3 = Regex.Split(output.Data, "download] Destination: ")
+                Dim CutText As String
+                If output.Data.ToString().Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
+                    CutText = ".f" & SelectedVideoNumber & "." & SelectedVideoFormat
+                ElseIf output.Data.ToString().Contains(".f" & SelectedAudioNumber & "." & SelectedAudioFormat) Then
+                    CutText = ".f" & SelectedAudioNumber & "." & SelectedAudioFormat
+                End If
+                Dim output4() As String
+                output4 = Regex.Split(output3(1), CutText)
+                FileNameToSave = output4(0)
+                'MsgBox(FileNameToSave)
+            End If
+            If output.Data.ToString().Contains("[download]") = True And output.Data.ToString().Contains(" Destination: ") = False And output.Data.Contains(" 100% of ") = False Then
+                Dim TextToShow As String
+                Dim output5() As String
+                output5 = Regex.Split(output.Data.ToString(), "download] ")
+                TextToShow = output5(1)
+                TextToShow.TrimStart(Chr(32))
+                Label7.Text = "Downloading: " & TextToShow
+                Dim output6() As String
+                output6 = Regex.Split(TextToShow, "% of ")
+                CurrentProgress = output6(0)
+                Dim IntProgress As Integer
+                Dim DecProgress As Decimal = CurrentProgress
+                IntProgress = DecProgress * 10
+                ProgressBar1.Value = IntProgress
+            End If
+        End If
+        'Dim test() As String
+        ' Dim count As Integer
+        'count = 0
+        ' Do
+        '     ' MsgBox(output.Data.ToString())
+        '  test(count) = output.Data.ToString()
+        '   count = count + 1
+        'Loop Until String.IsNullOrEmpty(output.Data)
     End Sub
 End Class
