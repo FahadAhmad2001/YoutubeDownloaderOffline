@@ -49,6 +49,8 @@ Public Class Form1
     Public NewVersion As String
     Public CurrentVDate As String
     Public NewVDate As String
+    Dim AllFiles As String
+    Public MissingFiles As String
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Label3.Text = ""
         Label4.Text = ""
@@ -61,7 +63,120 @@ Public Class Form1
         'Videos(1) = "sample"
         firstVid = True
         DownloadRunning = "FALSE"
+        AllFiles = ""
+        MissingFiles = ""
+        If File.Exists(Application.StartupPath & "\blank.jpg") Then
 
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "blank.jpg" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\avcodec-57.dll") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "avcodec-57.dll" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\avdevice-57.dll") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "avdevice-57.dll" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\avfilter-6.dll") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "avfilter-6.dll" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\avformat-57.dll") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "avformat-57.dll" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\avutil-55.dll") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "avutil-55.dll" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\ffmpeg.exe") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "ffmpeg.exe" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\ffprobe.exe") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "ffprobe.exe" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\ffplay.exe") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "ffplay.exe" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\postproc-54.dll") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "postproc-54.dll" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\swresample-2.dll") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "swresample-2.dll" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\swscale-4.dll") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "swscale-4.dll" & ":"
+        End If
+        If File.Exists(Application.StartupPath & "\youtube-dl.exe") Then
+
+        Else
+            If AllFiles.Contains("FALSE") = False Then
+                AllFiles = "FALSE"
+            End If
+            MissingFiles = MissingFiles & "youtube-dl.exe" & ":"
+        End If
+        MissingFiles.TrimEnd(":")
+        If AllFiles.Contains("FALSE") Then
+            Dim reply2 As DialogResult = MessageBox.Show("Some files are missing. Would you like to download them?", "Fix Missing Files", MessageBoxButtons.YesNoCancel)
+            If reply2 = DialogResult.Yes Then
+                MissingFiles = MissingFiles & "END"
+                Form3.ShowDialog()
+            End If
+        End If
         If File.Exists(Application.StartupPath & "\config.txt") Then
             CheckVersion = New StreamReader(Application.StartupPath & "\config.txt")
             Dim VersionContents As String
@@ -115,7 +230,30 @@ Public Class Form1
                 Audios = String.Empty
                 Videos = String.Empty
             End If
+            Audios = String.Empty
+            Videos = String.Empty
+            PicURL = String.Empty
+            VidTitle = String.Empty
+            CurrentAudFormat = String.Empty
+            CurrentAudNumber = String.Empty
+            CurrentAudSize = String.Empty
+            CurrentProgress = String.Empty
+            CurrentSpeed = String.Empty
+            CurrentVidFormat = String.Empty
+            CurrentVidNumber = String.Empty
+            CurrentVidRes = String.Empty
+            CurrentVidSize = String.Empty
+            'firstVid = String.Empty
+            HasSelectedQuality = ""
+            SelectedAudioFormat = ""
+            SelectedAudioNumber = ""
+            SelectedAudioSize = ""
+            SelectedVideoFormat = ""
+            SelectedVideoNumber = ""
+            SelectedVideoSize = ""
+            FileNameToSave = ""
             Label8.Text = "Getting Metadata..."
+            PictureBox1.Image = Image.FromFile(Application.StartupPath & "\blank.jpg")
             If File.Exists(Application.StartupPath & "\thumbnail.jpg") Then
                 File.Delete(Application.StartupPath & "\thumbnail.jpg")
             End If
