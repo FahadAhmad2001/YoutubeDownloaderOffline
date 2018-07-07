@@ -252,6 +252,13 @@ Public Class Form1
             SelectedVideoNumber = ""
             SelectedVideoSize = ""
             FileNameToSave = ""
+            If Me.PictureBox1.Image Is Nothing Then
+
+            Else
+
+                Me.PictureBox1.Image.Dispose()
+
+            End If
             Label8.Text = "Getting Metadata..."
             PictureBox1.Image = Image.FromFile(Application.StartupPath & "\blank.jpg")
             If File.Exists(Application.StartupPath & "\thumbnail.jpg") Then
@@ -484,7 +491,9 @@ EndStart:
         NormalDownload.StartInfo = NormalDownloadInfo
         AddHandler NormalDownload.OutputDataReceived, AddressOf NewOutputReader
         NormalDownload.Start()
-        NormalDownload.BeginOutputReadLine()
+        If firstVid = True Then
+            NormalDownload.BeginOutputReadLine()
+        End If
         EditLogs = New StreamWriter(Application.StartupPath & "\downloadlog.txt")
         'Dim OutputReader As StreamReader = NormalDownload.StandardOutput
         'Dim ErrorReader As StreamReader = NormalDownload.StandardError
@@ -499,6 +508,7 @@ EndStart:
         'MsgBox("ERROR:" & error2)
         NormalDownload.WaitForExit()
         NormalDownload.Close()
+        firstVid = False
         EditLogs.Close()
         'MsgBox(NormalDownload.ExitCode.ToString)
         If NeedToConvert.Contains("TRUE") Then
