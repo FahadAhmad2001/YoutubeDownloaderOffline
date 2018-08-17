@@ -552,7 +552,7 @@ EndStart:
 
         NeedToConvert = ""
 
-        MsgBox("Download completed")
+        MsgBox("Download completed. Video saved in My Documents.")
 EndDownloading:
         DownloadRunning = "FALSE"
         ProgressBar1.Value = 0
