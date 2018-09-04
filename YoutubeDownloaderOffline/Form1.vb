@@ -219,6 +219,7 @@ Public Class Form1
 
         VidURL = TextBox1.Text
         If VidURL.Contains("youtube.com/") Then
+            ComboBox1.Items.Clear()
             HasSelectedQuality = ""
             AudioCount = 0
             VideoCount = 0
@@ -491,9 +492,9 @@ EndStart:
         NormalDownload.StartInfo = NormalDownloadInfo
         AddHandler NormalDownload.OutputDataReceived, AddressOf NewOutputReader
         NormalDownload.Start()
-        If firstVid = True Then
-            NormalDownload.BeginOutputReadLine()
-        End If
+        ' If firstVid = True Then
+        NormalDownload.BeginOutputReadLine()
+        'End If
         EditLogs = New StreamWriter(Application.StartupPath & "\downloadlog.txt")
         'Dim OutputReader As StreamReader = NormalDownload.StandardOutput
         'Dim ErrorReader As StreamReader = NormalDownload.StandardError
@@ -507,6 +508,7 @@ EndStart:
         'MsgBox("OUTPUT:" & output2)
         'MsgBox("ERROR:" & error2)
         NormalDownload.WaitForExit()
+        NormalDownload.CancelOutputRead()
         NormalDownload.Close()
         firstVid = False
         EditLogs.Close()
