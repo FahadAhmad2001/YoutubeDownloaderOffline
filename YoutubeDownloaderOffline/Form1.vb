@@ -43,6 +43,8 @@ Public Class Form1
     Dim FileNameToSave As String
     Dim ConvertDownloadedVid As New Process()
     Dim ConvertDownloadedVidInfo As New ProcessStartInfo(Application.StartupPath & "\ffmpeg.exe")
+    Dim WithEvents MP3Download As New Process()
+    Dim MP3DownloadInfo As New ProcessStartInfo(Application.StartupPath & "\MP3Download.bat")
     Dim SameSelectedFormat As String
     Dim CheckVersion As StreamReader
     Public CurrentVersion As String
@@ -51,6 +53,7 @@ Public Class Form1
     Public NewVDate As String
     Dim AllFiles As String
     Public MissingFiles As String
+    Dim MP3NameToSave As String
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Label3.Text = ""
         Label4.Text = ""
@@ -186,11 +189,11 @@ Public Class Form1
             output1 = VersionContents.Split(":")
             CurrentVersion = output1(0)
             CurrentVDate = output1(1)
-            If My.Computer.Network.Ping("serverwebsite.ddns.net") Then
+            If My.Computer.Network.Ping("lightspeedmedia.tk") Then
                 If File.Exists(Application.StartupPath & "\remoteversion.txt") Then
                     File.Delete(Application.StartupPath & "\remoteversion.txt")
                 End If
-                My.Computer.Network.DownloadFile("ftp://serverwebsite.ddns.net/downloads/youtubedownload/remoteversion.txt", Application.StartupPath & "\remoteversion.txt")
+                My.Computer.Network.DownloadFile("ftp://lightspeedmedia.tk/downloads/youtubedownload/remoteversion.txt", Application.StartupPath & "\remoteversion.txt")
                 CheckVersion = New StreamReader(Application.StartupPath & "\remoteversion.txt")
                 Dim NewVersionContents As String
                 NewVersionContents = CheckVersion.ReadToEnd()
@@ -270,9 +273,12 @@ Public Class Form1
             GetVidThumbnailInfo.RedirectStandardOutput = True
             GetVidThumbnailInfo.CreateNoWindow = True
             GetVidThumbnailInfo.WindowStyle = ProcessWindowStyle.Hidden
+            'GetVidThumbnailInfo.RedirectStandardError = True
+            Dim temp1 As String
             GetVidThumbnail.StartInfo = GetVidThumbnailInfo
             GetVidThumbnail.Start()
             PicURL = GetVidThumbnail.StandardOutput.ReadToEnd()
+            'temp1 = GetVidThumbnail.StandardError.ReadToEnd()
             GetVidThumbnail.WaitForExit()
             GetVidThumbnail.Close()
             My.Computer.Network.DownloadFile(PicURL, Application.StartupPath & "\thumbnail.jpg")
@@ -381,6 +387,7 @@ Public Class Form1
             'MsgBox(Videos)
             ComboBox1.Text = "Select a quality:"
             Label4.Text = "Select a video and audio quality:"
+            ComboBox1.Items.Add("MP3 Only")
             'MsgBox(AudioCount)
         Else
             MsgBox("Not a valid YouTube URL")
@@ -394,28 +401,45 @@ EndMetadata:
     End Sub
 
     Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox1.SelectedIndexChanged
-        Dim CurrentQualitySelected As String
-        CurrentQualitySelected = ComboBox1.SelectedItem.ToString()
-        Dim output1() As String
-        output1 = Regex.Split(CurrentQualitySelected, " - ")
-        Dim output2() As String
-        output2 = Regex.Split(Videos, "NEXT")
-        Dim SelectedVideoIndex As String
-        For Each item As String In output2
-            If item.Contains(output1(0)) = True And item.Contains(output1(1)) = True Then
-                SelectedVideoIndex = item
+        If ComboBox1.SelectedItem = "MP3 Only" Then
+            Dim TempAudioType As String
+            Dim output1() As String
+            output1 = Regex.Split(Audios, "NEXT")
+            TempAudioType = output1(TrackBar1.Maximum)
+            HasSelectedQuality = ""
+            Dim TempAudioSize As String
+            Dim output2() As String
+            output2 = Regex.Split(TempAudioType, "TRIM")
+            TempAudioSize = output2(2)
+            Label4.Text = "Total File Size: " & TempAudioSize & " (AUDIO ONLY)"
+            TrackBar1.Enabled = False
+        Else
+            TrackBar1.Enabled = True
+            Dim CurrentQualitySelected As String
+            CurrentQualitySelected = ComboBox1.SelectedItem.ToString()
+            Dim output1() As String
+            output1 = Regex.Split(CurrentQualitySelected, " - ")
+            Dim output2() As String
+            output2 = Regex.Split(Videos, "NEXT")
+            Dim SelectedVideoIndex As String
+            For Each item As String In output2
+                If item.Contains(output1(0)) = True And item.Contains(output1(1)) = True Then
+                    SelectedVideoIndex = item
+                End If
+            Next
+            Dim output3() As String
+            output3 = Regex.Split(SelectedVideoIndex, "TRIM")
+            SelectedVideoNumber = output3(0)
+            SelectedVideoSize = output3(3)
+            SelectedVideoFormat = output3(1)
+            If HasSelectedQuality.Contains("VIDEO") = False Then
+                HasSelectedQuality = HasSelectedQuality + "VIDEO"
             End If
-        Next
-        Dim output3() As String
-        output3 = Regex.Split(SelectedVideoIndex, "TRIM")
-        SelectedVideoNumber = output3(0)
-        SelectedVideoSize = output3(3)
-        SelectedVideoFormat = output3(1)
-        If HasSelectedQuality.Contains("VIDEO") = False Then
-            HasSelectedQuality = HasSelectedQuality + "VIDEO"
-        End If
-        If HasSelectedQuality.Contains("AUDIO") = True And HasSelectedQuality.Contains("VIDEO") = True Then
-            Label4.Text = "Total File Size: " & SelectedVideoSize & " (VIDEO), " & SelectedAudioSize & " (AUDIO)"
+            If HasSelectedQuality.Contains("AUDIO") = True And HasSelectedQuality.Contains("VIDEO") = True Then
+                Label4.Text = "Total File Size: " & SelectedVideoSize & " (VIDEO), " & SelectedAudioSize & " (AUDIO)"
+            Else
+                Label4.Text = "Select a video and audio quality"
+            End If
         End If
     End Sub
 
@@ -441,15 +465,84 @@ EndMetadata:
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
         SameSelectedFormat = ""
         If DownloadRunning = "FALSE" Then
-            AutoVideoDownloader = New Thread(AddressOf NormalDownloader)
-            AutoVideoDownloader.Start()
-            'MsgBox("Started thread")
-            DownloadRunning = "TRUE"
-            GoTo EndStart
+            If ComboBox1.SelectedItem = "MP3 Only" Then
+                AutoVideoDownloader = New Thread(AddressOf MP3Downloader)
+                AutoVideoDownloader.Start()
+                DownloadRunning = "TRUE"
+                GoTo EndStart
+            Else
+                AutoVideoDownloader = New Thread(AddressOf NormalDownloader)
+                AutoVideoDownloader.Start()
+                'MsgBox("Started thread")
+                DownloadRunning = "TRUE"
+                GoTo EndStart
+            End If
         Else
             MsgBox("Please wait for the current download to complete")
         End If
 EndStart:
+    End Sub
+    Public Sub MP3Downloader()
+        'MsgBox("sub started")
+        Dim command As String
+        command = "--extract-audio --audio-format mp3 --newline " & VidURL
+        EditLogs = New StreamWriter(Application.StartupPath & "\tempfile.txt")
+        EditLogs.WriteLine(command)
+        EditLogs.Close()
+        EditBAT = New StreamWriter(Application.StartupPath & "\MP3Download.bat")
+        EditBAT.WriteLine("cd " & Chr(34) & Application.StartupPath & Chr(34))
+        EditBAT.WriteLine("youtube-dl " & command)
+        EditBAT.Close()
+        MP3DownloadInfo.CreateNoWindow = True
+        MP3DownloadInfo.UseShellExecute = False
+        MP3DownloadInfo.WindowStyle = ProcessWindowStyle.Hidden
+        MP3DownloadInfo.RedirectStandardOutput = True
+        'NormalDownloadInfo.RedirectStandardError = True
+        MP3Download.StartInfo = MP3DownloadInfo
+        EditLogs = New StreamWriter(Application.StartupPath & "\MP3downloadlog.txt")
+        AddHandler MP3Download.OutputDataReceived, AddressOf NewOutputReader
+        MP3Download.Start()
+        MP3Download.BeginOutputReadLine()
+        MP3Download.WaitForExit()
+        MP3Download.CancelOutputRead()
+        MP3Download.Close()
+        Dim temp1 As String
+        temp1 = VidTitle.Replace(":", "-")
+        temp1 = temp1.Replace("/", "-")
+        temp1 = temp1.Replace("\", "-")
+        temp1 = temp1.Replace("*", "-")
+        temp1 = temp1.Replace("?", "-")
+        temp1 = temp1.Replace(Chr(34), "-")
+        'temp1 = temp1.Replace("/", "-")
+        temp1 = temp1.Replace("<", "-")
+        temp1 = temp1.Replace(">", "-")
+        temp1 = temp1.Replace("|", "-")
+        'MsgBox(temp1)
+        If File.Exists(Application.StartupPath & "\" & MP3NameToSave) Then
+            If File.Exists(My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & MP3NameToSave) Then
+                SaveFileDialog1.FileName = MP3NameToSave
+                If SaveFileDialog1.ShowDialog() = DialogResult.OK Then
+                    File.Copy(Application.StartupPath & "\" & MP3NameToSave, SaveFileDialog1.FileName)
+                    File.Delete(Application.StartupPath & "\" & MP3NameToSave)
+                    MsgBox("MP3 successfully saved")
+                End If
+            Else
+                File.Copy(Application.StartupPath & "\" & MP3NameToSave, My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & MP3NameToSave)
+                File.Delete(Application.StartupPath & "\" & MP3NameToSave)
+                MsgBox("MP3 downloaded successfully and saved in My Documents")
+            End If
+            Label8.Text = ""
+            ProgressBar1.Value = 0
+            Label7.Text = ""
+        Else
+            MsgBox("Error in downloading, please contact support@lightspeedmedia.tk")
+            Label8.Text = ""
+            ProgressBar1.Value = 0
+            Label7.Text = ""
+        End If
+        firstVid = False
+        DownloadRunning = "FALSE"
+        AutoVideoDownloader.Abort()
     End Sub
     Public Sub NormalDownloader()
         ' MsgBox("sub started")
@@ -631,36 +724,43 @@ EndDownloading:
         If Not String.IsNullOrEmpty(output.Data) Then
             'MsgBox(output.Data)
             EditLogs.WriteLine(output.Data)
-            If output.Data.ToString().Contains("[download] Destination: ") Then
-                Dim output3() As String
-                output3 = Regex.Split(output.Data, "download] Destination: ")
-                Dim CutText As String
-                If output.Data.ToString().Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
-                    CutText = ".f" & SelectedVideoNumber & "." & SelectedVideoFormat
-                ElseIf output.Data.ToString().Contains(".f" & SelectedAudioNumber & "." & SelectedAudioFormat) Then
-                    CutText = ".f" & SelectedAudioNumber & "." & SelectedAudioFormat
+            If output.Data.Contains("[ffmpeg] Destination: ") And ComboBox1.SelectedItem = "MP3 Only" Then
+                Label8.Text = "Converting to MP3..."
+                Dim output1() As String
+                output1 = Regex.Split(output.Data, "ffmpeg] Destination: ")
+                MP3NameToSave = output1(1)
+            End If
+
+            If output.Data.ToString().Contains("[download] Destination: ") And (ComboBox1.SelectedItem IsNot "MP3 Only") Then
+                    Dim output3() As String
+                    output3 = Regex.Split(output.Data, "download] Destination: ")
+                    Dim CutText As String
+                    If output.Data.ToString().Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
+                        CutText = ".f" & SelectedVideoNumber & "." & SelectedVideoFormat
+                    ElseIf output.Data.ToString().Contains(".f" & SelectedAudioNumber & "." & SelectedAudioFormat) Then
+                        CutText = ".f" & SelectedAudioNumber & "." & SelectedAudioFormat
+                    End If
+                    Dim output4() As String
+                    output4 = Regex.Split(output3(1), CutText)
+                    FileNameToSave = output4(0)
+                    'MsgBox(FileNameToSave)
                 End If
-                Dim output4() As String
-                output4 = Regex.Split(output3(1), CutText)
-                FileNameToSave = output4(0)
-                'MsgBox(FileNameToSave)
+                If output.Data.ToString().Contains("[download]") = True And output.Data.ToString().Contains(" Destination: ") = False And output.Data.Contains(" 100% of ") = False Then
+                    Dim TextToShow As String
+                    Dim output5() As String
+                    output5 = Regex.Split(output.Data.ToString(), "download] ")
+                    TextToShow = output5(1)
+                    TextToShow.TrimStart(Chr(32))
+                    Label7.Text = "Downloading: " & TextToShow
+                    Dim output6() As String
+                    output6 = Regex.Split(TextToShow, "% of ")
+                    CurrentProgress = output6(0)
+                    Dim IntProgress As Integer
+                    Dim DecProgress As Decimal = CurrentProgress
+                    IntProgress = DecProgress * 10
+                    ProgressBar1.Value = IntProgress
+                End If
             End If
-            If output.Data.ToString().Contains("[download]") = True And output.Data.ToString().Contains(" Destination: ") = False And output.Data.Contains(" 100% of ") = False Then
-                Dim TextToShow As String
-                Dim output5() As String
-                output5 = Regex.Split(output.Data.ToString(), "download] ")
-                TextToShow = output5(1)
-                TextToShow.TrimStart(Chr(32))
-                Label7.Text = "Downloading: " & TextToShow
-                Dim output6() As String
-                output6 = Regex.Split(TextToShow, "% of ")
-                CurrentProgress = output6(0)
-                Dim IntProgress As Integer
-                Dim DecProgress As Decimal = CurrentProgress
-                IntProgress = DecProgress * 10
-                ProgressBar1.Value = IntProgress
-            End If
-        End If
         'Dim test() As String
         ' Dim count As Integer
         'count = 0
@@ -669,5 +769,9 @@ EndDownloading:
         '  test(count) = output.Data.ToString()
         '   count = count + 1
         'Loop Until String.IsNullOrEmpty(output.Data)
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Form2.ShowDialog()
     End Sub
 End Class

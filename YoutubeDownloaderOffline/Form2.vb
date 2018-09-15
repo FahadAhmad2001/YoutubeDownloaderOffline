@@ -13,7 +13,7 @@ Public Class Form2
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
 
         'NewDownloader = New Net.WebClient()
-        Dim DownloadUrl As Uri = New Uri("http://serverwebsite.ddns.net:500/youtubedownload/files/lsyoutubedownload.exe")
+        Dim DownloadUrl As Uri = New Uri("http://lightspeedmedia.tk:500/youtubedownload/files/lsyoutubedownload.exe")
         AddHandler NewDownloader.DownloadProgressChanged, AddressOf DownloadProgressChanged
         AddHandler NewDownloader.DownloadFileCompleted, AddressOf DownloadCompleted
         NewDownloader.DownloadFileAsync(DownloadUrl, Application.StartupPath & "\lsyoutubedownload.exe")

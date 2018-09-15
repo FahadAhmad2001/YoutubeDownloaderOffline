@@ -42,7 +42,7 @@ Public Class Form3
         If String.IsNullOrEmpty(CurrentFile) = False Then
             If CurrentFile.Contains("END") = False Then
                 CurrentLabel = "Downloading: " & CurrentFile
-                Dim DownloadURL As Uri = New Uri("http://serverwebsite.ddns.net:500/youtubedownload/files/" & CurrentFile)
+                Dim DownloadURL As Uri = New Uri("http://lightspeedmedia.tk:500/youtubedownload/files/" & CurrentFile)
                 FilesDownloader.DownloadFileAsync(DownloadURL, Application.StartupPath & "\" & CurrentFile)
             Else
                 Me.Close()
@@ -74,5 +74,9 @@ Public Class Form3
             Me.Close()
         End If
         MissingFilesDownloader()
+    End Sub
+
+    Private Sub Label1_Click(sender As Object, e As EventArgs) Handles Label1.Click
+
     End Sub
 End Class
