@@ -466,8 +466,10 @@ EndMetadata:
         SameSelectedFormat = ""
         If DownloadRunning = "FALSE" Then
             If ComboBox1.SelectedItem = "MP3 Only" Then
+                'MsgBox("starting thread")
                 AutoVideoDownloader = New Thread(AddressOf MP3Downloader)
                 AutoVideoDownloader.Start()
+                'MsgBox("started thread")
                 DownloadRunning = "TRUE"
                 GoTo EndStart
             Else
@@ -502,10 +504,13 @@ EndStart:
         EditLogs = New StreamWriter(Application.StartupPath & "\MP3downloadlog.txt")
         AddHandler MP3Download.OutputDataReceived, AddressOf NewOutputReader
         MP3Download.Start()
+        'MsgBox("started")
         MP3Download.BeginOutputReadLine()
+        'MsgBox("reading output")
         MP3Download.WaitForExit()
         MP3Download.CancelOutputRead()
         MP3Download.Close()
+        EditLogs.Close()
         Dim temp1 As String
         temp1 = VidTitle.Replace(":", "-")
         temp1 = temp1.Replace("/", "-")
@@ -751,15 +756,15 @@ EndDownloading:
                     output5 = Regex.Split(output.Data.ToString(), "download] ")
                     TextToShow = output5(1)
                     TextToShow.TrimStart(Chr(32))
-                    Label7.Text = "Downloading: " & TextToShow
-                    Dim output6() As String
+                Label7.Text = "Downloading: " & TextToShow
+                Dim output6() As String
                     output6 = Regex.Split(TextToShow, "% of ")
                     CurrentProgress = output6(0)
                     Dim IntProgress As Integer
                     Dim DecProgress As Decimal = CurrentProgress
                     IntProgress = DecProgress * 10
-                    ProgressBar1.Value = IntProgress
-                End If
+                ProgressBar1.Value = IntProgress
+            End If
             End If
         'Dim test() As String
         ' Dim count As Integer
