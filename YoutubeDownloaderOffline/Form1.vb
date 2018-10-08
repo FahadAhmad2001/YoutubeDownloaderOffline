@@ -54,7 +54,10 @@ Public Class Form1
     Dim AllFiles As String
     Public MissingFiles As String
     Dim MP3NameToSave As String
+    Dim WithEvents UpdateYTDL As New Process()
+    Dim UpdateYTDLInfo As New ProcessStartInfo(Application.StartupPath & "\youtube-dl.exe")
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
         Label3.Text = ""
         Label4.Text = ""
         Label7.Text = ""
@@ -180,6 +183,13 @@ Public Class Form1
                 Form3.ShowDialog()
             End If
         End If
+
+        UpdateYTDLInfo.CreateNoWindow = True
+        UpdateYTDLInfo.Arguments = "-U"
+        UpdateYTDLInfo.UseShellExecute = False
+        UpdateYTDLInfo.WindowStyle = ProcessWindowStyle.Hidden
+        UpdateYTDLInfo.RedirectStandardOutput = True
+
         If File.Exists(Application.StartupPath & "\config.txt") Then
             CheckVersion = New StreamReader(Application.StartupPath & "\config.txt")
             Dim VersionContents As String
@@ -189,6 +199,14 @@ Public Class Form1
             output1 = VersionContents.Split(":")
             CurrentVersion = output1(0)
             CurrentVDate = output1(1)
+            If My.Computer.Network.Ping("google.com") Then
+                UpdateYTDL.StartInfo = UpdateYTDLInfo
+                AddHandler UpdateYTDL.OutputDataReceived, AddressOf UpdateOutputReader
+                UpdateYTDL.Start()
+                UpdateYTDL.BeginOutputReadLine()
+                UpdateYTDL.WaitForExit()
+                UpdateYTDL.Close()
+            End If
             If My.Computer.Network.Ping("lightspeedmedia.tk") Then
                 If File.Exists(Application.StartupPath & "\remoteversion.txt") Then
                     File.Delete(Application.StartupPath & "\remoteversion.txt")
@@ -723,6 +741,15 @@ EndDownloading:
             MsgBox(newerrorline)
         End If
         ErrorRead(ErrorReader)
+    End Sub
+    Private Sub UpdateOutputReader(sendingProcess As Object, output As DataReceivedEventArgs)
+        If Not String.IsNullOrEmpty(output.Data) Then
+            If output.Data.Contains("Updating to version ") Then
+                Dim output1() As String
+                output1 = Regex.Split(output.Data, " version ")
+                MessageBox.Show("Please wait for a moment" & vbCrLf & "Updating downloader to version " & output1(1))
+            End If
+        End If
     End Sub
     Private Sub NewOutputReader(sendingProcess As Object, output As DataReceivedEventArgs)
         'MsgBox(output.Data)
