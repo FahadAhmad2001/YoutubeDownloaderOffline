@@ -39,6 +39,7 @@ Partial Class Form1
         Me.Button2 = New System.Windows.Forms.Button()
         Me.Label8 = New System.Windows.Forms.Label()
         Me.SaveFileDialog1 = New System.Windows.Forms.SaveFileDialog()
+        Me.Button3 = New System.Windows.Forms.Button()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.TrackBar1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -186,11 +187,21 @@ Partial Class Form1
         Me.SaveFileDialog1.Filter = """MP3 Files (*.mp3)|*.mp3|All Files (*.*)|*.*"
         Me.SaveFileDialog1.Title = "Where would you like to save the MP3?"
         '
+        'Button3
+        '
+        Me.Button3.Location = New System.Drawing.Point(16, 313)
+        Me.Button3.Name = "Button3"
+        Me.Button3.Size = New System.Drawing.Size(92, 23)
+        Me.Button3.TabIndex = 15
+        Me.Button3.Text = "Settings"
+        Me.Button3.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(691, 372)
+        Me.Controls.Add(Me.Button3)
         Me.Controls.Add(Me.Label8)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.Label7)
@@ -232,4 +243,5 @@ Partial Class Form1
     Friend WithEvents Button2 As Button
     Friend WithEvents Label8 As Label
     Friend WithEvents SaveFileDialog1 As SaveFileDialog
+    Friend WithEvents Button3 As Button
 End Class

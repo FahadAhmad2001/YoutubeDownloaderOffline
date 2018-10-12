@@ -207,11 +207,11 @@ Public Class Form1
                 UpdateYTDL.WaitForExit()
                 UpdateYTDL.Close()
             End If
-            If My.Computer.Network.Ping("lightspeedmedia.tk") Then
+            If My.Computer.Network.Ping("serverwebsite.ddns.net") Then
                 If File.Exists(Application.StartupPath & "\remoteversion.txt") Then
                     File.Delete(Application.StartupPath & "\remoteversion.txt")
                 End If
-                My.Computer.Network.DownloadFile("ftp://lightspeedmedia.tk/downloads/youtubedownload/remoteversion.txt", Application.StartupPath & "\remoteversion.txt")
+                My.Computer.Network.DownloadFile("http://serverwebsite.ddns.net:500/youtubedownload/remoteversion.txt", Application.StartupPath & "\remoteversion.txt")
                 CheckVersion = New StreamReader(Application.StartupPath & "\remoteversion.txt")
                 Dim NewVersionContents As String
                 NewVersionContents = CheckVersion.ReadToEnd()
@@ -805,5 +805,9 @@ EndDownloading:
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
         Form2.ShowDialog()
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        AppSettings.ShowDialog()
     End Sub
 End Class
