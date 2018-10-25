@@ -56,6 +56,10 @@ Public Class Form1
     Dim MP3NameToSave As String
     Dim WithEvents UpdateYTDL As New Process()
     Dim UpdateYTDLInfo As New ProcessStartInfo(Application.StartupPath & "\youtube-dl.exe")
+    Dim KeepThumbnailMP3 As Boolean
+    Dim PostDownloadCmd As Boolean
+    Dim PDCommand As String
+    Dim SettingsContents As String
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
         Label3.Text = ""
@@ -233,6 +237,35 @@ Public Class Form1
             End If
         Else
             MsgBox("Cannot find config.txt file")
+        End If
+        Dim ReadINI As StreamReader
+        If File.Exists(Application.StartupPath & "\config.ini") Then
+            ReadINI = New StreamReader(Application.StartupPath & "\config.ini")
+            SettingsContents = ReadINI.ReadToEnd()
+            ReadINI.Close()
+            Dim output1() As String
+            output1 = SettingsContents.Split(";")
+            If output1(1).Contains("True") Then
+                KeepThumbnailMP3 = True
+            Else
+                KeepThumbnailMP3 = False
+            End If
+            If output1(2).Contains("True") Then
+                PostDownloadCmd = True
+            Else
+                PostDownloadCmd = False
+            End If
+        Else
+            MessageBox.Show("Cannot load current settings as config.ini cannot be found" & vbCrLf & "or cannot be read due to insufficient permissions", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            KeepThumbnailMP3 = True
+            PostDownloadCmd = False
+        End If
+        If File.Exists(Application.StartupPath & "\command.txt") Then
+            ReadINI = New StreamReader(Application.StartupPath & "\command.txt")
+            PDCommand = ReadINI.ReadToEnd()
+            ReadINI.Close()
+        Else
+            MessageBox.Show("Cannot load 'Run program after downloading' setting as command.txt cannot be found" & vbCrLf & "or cannot be read due to insufficient permissions", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End If
     End Sub
 
@@ -505,7 +538,11 @@ EndStart:
     Public Sub MP3Downloader()
         'MsgBox("sub started")
         Dim command As String
-        command = "--extract-audio --audio-format mp3 --newline " & VidURL
+        If KeepThumbnailMP3 = True Then
+            command = "--extract-audio --audio-format mp3 --newline --embed-thumbnail " & VidURL
+        Else
+            command = "--extract-audio --audio-format mp3 --newline " & VidURL
+        End If
         EditLogs = New StreamWriter(Application.StartupPath & "\tempfile.txt")
         EditLogs.WriteLine(command)
         EditLogs.Close()
@@ -547,11 +584,17 @@ EndStart:
                 If SaveFileDialog1.ShowDialog() = DialogResult.OK Then
                     File.Copy(Application.StartupPath & "\" & MP3NameToSave, SaveFileDialog1.FileName)
                     File.Delete(Application.StartupPath & "\" & MP3NameToSave)
+                    If PostDownloadCmd = True Then
+                        Process.Start("cmd.exe", "/c " & PDCommand)
+                    End If
                     MsgBox("MP3 successfully saved")
                 End If
             Else
                 File.Copy(Application.StartupPath & "\" & MP3NameToSave, My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & MP3NameToSave)
                 File.Delete(Application.StartupPath & "\" & MP3NameToSave)
+                If PostDownloadCmd = True Then
+                    Process.Start("cmd.exe", "/c " & PDCommand)
+                End If
                 MsgBox("MP3 downloaded successfully and saved in My Documents")
             End If
             Label8.Text = ""
@@ -667,7 +710,9 @@ EndStart:
                 End If
             End If
         End If
-
+        If PostDownloadCmd = True Then
+            Process.Start("cmd.exe", "/c " & PDCommand)
+        End If
         NeedToConvert = ""
 
         MsgBox("Download completed. Video saved in My Documents.")
@@ -809,5 +854,34 @@ EndDownloading:
 
     Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
         AppSettings.ShowDialog()
+        Dim ReadINI As StreamReader
+        If File.Exists(Application.StartupPath & "\config.ini") Then
+            ReadINI = New StreamReader(Application.StartupPath & "\config.ini")
+            SettingsContents = ReadINI.ReadToEnd()
+            ReadINI.Close()
+            Dim output1() As String
+            output1 = SettingsContents.Split(";")
+            If output1(1).Contains("True") Then
+                KeepThumbnailMP3 = True
+            Else
+                KeepThumbnailMP3 = False
+            End If
+            If output1(2).Contains("True") Then
+                PostDownloadCmd = True
+            Else
+                PostDownloadCmd = False
+            End If
+        Else
+            MessageBox.Show("Cannot load current settings as config.ini cannot be found" & vbCrLf & "or cannot be read due to insufficient permissions", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            KeepThumbnailMP3 = True
+            PostDownloadCmd = False
+        End If
+        If File.Exists(Application.StartupPath & "\command.txt") Then
+            ReadINI = New StreamReader(Application.StartupPath & "\command.txt")
+            PDCommand = ReadINI.ReadToEnd()
+            ReadINI.Close()
+        Else
+            MessageBox.Show("Cannot load 'Run program after downloading' setting as command.txt cannot be found" & vbCrLf & "or cannot be read due to insufficient permissions", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End If
     End Sub
 End Class
