@@ -8,6 +8,7 @@ Public Class AppSettings
     Dim UseAutoCC As Boolean
     Dim DownloadAllCC As Boolean
     Dim CommandContents As String
+    Dim SaveLocation As String
     Private Sub AppSettings_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim ReadINI As StreamReader
         CheckBox5.Enabled = False
@@ -83,8 +84,16 @@ Public Class AppSettings
                 End If
                 DownloadAllCC = False
             End If
+            Dim output2() As String
+            output2 = output1(8).Split("=")
+            SaveLocation = output2(1)
+            If SaveLocation = "Documents" Then
+                Label4.Text = "Files saved in : My Documents"
+            Else
+                Label4.Text = "Files saved in: " & SaveLocation
+            End If
         Else
-            MessageBox.Show("Cannot load current settings as config.ini cannot be found" & vbCrLf & "or cannot be read due to insufficient permissions", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                MessageBox.Show("Cannot load current settings as config.ini cannot be found" & vbCrLf & "or cannot be read due to insufficient permissions", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             TextBox1.Enabled = False
             CheckBox2.Enabled = False
             CheckBox4.Enabled = False
@@ -142,6 +151,8 @@ Public Class AppSettings
         Else
             NewINIContents = NewINIContents & "DownloadAllCC=False;"
         End If
+        NewINIContents = NewINIContents & vbCrLf & vbCrLf & "SaveLocation;" & vbCrLf & vbCrLf & "SaveLocation=" & SaveLocation & ";"
+
         If File.Exists(Application.StartupPath & "\config.ini") Then
             File.Delete(Application.StartupPath & "\config.ini")
         End If
@@ -198,5 +209,29 @@ Public Class AppSettings
         Else
             DownloadAllCC = False
         End If
+    End Sub
+
+    Private Sub Label2_Click(sender As Object, e As EventArgs) Handles Label2.Click
+
+    End Sub
+
+    Private Sub Label4_Click(sender As Object, e As EventArgs) Handles Label4.Click
+
+    End Sub
+
+    Private Sub TextBox1_TextChanged(sender As Object, e As EventArgs) Handles TextBox1.TextChanged
+
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        If FolderBrowserDialog1.ShowDialog() = DialogResult.OK Then
+            SaveLocation = FolderBrowserDialog1.SelectedPath
+            Label4.Text = "Files saved in: " + SaveLocation
+        End If
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        SaveLocation = "Documents"
+        Label4.Text = "Files saved in: My Documents"
     End Sub
 End Class

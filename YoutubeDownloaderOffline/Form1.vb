@@ -1,6 +1,9 @@
 ﻿Imports System.Threading
 Imports System.Text.RegularExpressions
 Imports System.IO
+Imports MS.WindowsAPICodePack
+Imports Microsoft.WindowsAPICodePack
+Imports Microsoft.WindowsAPICodePack.Taskbar
 Public Class Form1
     Dim GetVidThumbnail As New Process()
     Dim GetVidThumbnailInfo As New ProcessStartInfo(Application.StartupPath & "\youtube-dl.exe")
@@ -60,6 +63,10 @@ Public Class Form1
     Dim PostDownloadCmd As Boolean
     Dim PDCommand As String
     Dim SettingsContents As String
+    Dim UseAutoCC As Boolean
+    Dim UseSubtitles As Boolean
+    Dim DownloadAllCC As Boolean
+    Dim SaveLocation As String
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
         Label3.Text = ""
@@ -75,6 +82,7 @@ Public Class Form1
         DownloadRunning = "FALSE"
         AllFiles = ""
         MissingFiles = ""
+        System.Windows.Forms.Control.CheckForIllegalCrossThreadCalls = False
         If File.Exists(Application.StartupPath & "\blank.jpg") Then
 
         Else
@@ -255,10 +263,31 @@ Public Class Form1
             Else
                 PostDownloadCmd = False
             End If
+            If output1(5).Contains("True") Then
+                UseAutoCC = True
+            Else
+                UseAutoCC = False
+            End If
+            If output1(4).Contains("True") Then
+                UseSubtitles = True
+            Else
+                UseSubtitles = False
+            End If
+            If output1(6).Contains("True") Then
+                DownloadAllCC = True
+            Else
+                DownloadAllCC = False
+            End If
+            Dim output2() As String
+            output2 = output1(8).Split("=")
+            SaveLocation = output2(1)
         Else
             MessageBox.Show("Cannot load current settings as config.ini cannot be found" & vbCrLf & "or cannot be read due to insufficient permissions", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             KeepThumbnailMP3 = True
             PostDownloadCmd = False
+            UseAutoCC = False
+            UseSubtitles = False
+            DownloadAllCC = False
         End If
         If File.Exists(Application.StartupPath & "\command.txt") Then
             ReadINI = New StreamReader(Application.StartupPath & "\command.txt")
@@ -579,23 +608,50 @@ EndStart:
         temp1 = temp1.Replace("|", "-")
         'MsgBox(temp1)
         If File.Exists(Application.StartupPath & "\" & MP3NameToSave) Then
-            If File.Exists(My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & MP3NameToSave) Then
-                SaveFileDialog1.FileName = MP3NameToSave
-                If SaveFileDialog1.ShowDialog() = DialogResult.OK Then
-                    File.Copy(Application.StartupPath & "\" & MP3NameToSave, SaveFileDialog1.FileName)
+            If SaveLocation = "Documents" Then
+                If File.Exists(My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & MP3NameToSave) Then
+                    SaveFileDialog1.FileName = MP3NameToSave
+                    If SaveFileDialog1.ShowDialog() = DialogResult.OK Then
+                        File.Copy(Application.StartupPath & "\" & MP3NameToSave, SaveFileDialog1.FileName)
+                        File.Delete(Application.StartupPath & "\" & MP3NameToSave)
+                        If PostDownloadCmd = True Then
+                            Process.Start("cmd.exe", "/c " & PDCommand)
+                        End If
+                        MsgBox("MP3 successfully saved")
+                    End If
+                Else
+                    File.Copy(Application.StartupPath & "\" & MP3NameToSave, My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & MP3NameToSave)
                     File.Delete(Application.StartupPath & "\" & MP3NameToSave)
                     If PostDownloadCmd = True Then
                         Process.Start("cmd.exe", "/c " & PDCommand)
                     End If
-                    MsgBox("MP3 successfully saved")
+                    MsgBox("MP3 downloaded successfully and saved in My Documents")
                 End If
             Else
-                File.Copy(Application.StartupPath & "\" & MP3NameToSave, My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & MP3NameToSave)
-                File.Delete(Application.StartupPath & "\" & MP3NameToSave)
-                If PostDownloadCmd = True Then
-                    Process.Start("cmd.exe", "/c " & PDCommand)
+                If File.Exists(SaveLocation & "\" & MP3NameToSave) Then
+                    SaveFileDialog1.FileName = MP3NameToSave
+                    If SaveFileDialog1.ShowDialog() = DialogResult.OK Then
+                        File.Copy(Application.StartupPath & "\" & MP3NameToSave, SaveFileDialog1.FileName)
+                        File.Delete(Application.StartupPath & "\" & MP3NameToSave)
+                        If PostDownloadCmd = True Then
+                            Process.Start("cmd.exe", "/c " & PDCommand)
+                        End If
+                        Label8.Text = ""
+                        ProgressBar1.Value = 0
+                        Label7.Text = ""
+                        MsgBox("MP3 successfully saved")
+                    End If
+                Else
+                    File.Copy(Application.StartupPath & "\" & MP3NameToSave, SaveLocation & "\" & MP3NameToSave)
+                    File.Delete(Application.StartupPath & "\" & MP3NameToSave)
+                    If PostDownloadCmd = True Then
+                        Process.Start("cmd.exe", "/c " & PDCommand)
+                    End If
+                    Label8.Text = ""
+                    ProgressBar1.Value = 0
+                    Label7.Text = ""
+                    MsgBox("MP3 downloaded successfully and saved")
                 End If
-                MsgBox("MP3 downloaded successfully and saved in My Documents")
             End If
             Label8.Text = ""
             ProgressBar1.Value = 0
@@ -634,7 +690,13 @@ EndStart:
             SameSelectedFormat = "webm"
         End If
         Dim command As String
-        command = "-f " & SelectedVideoNumber & "+" & SelectedAudioNumber & " " & VidURL & " --newline"
+        command = "-f " & SelectedVideoNumber & "+" & SelectedAudioNumber
+        If UseSubtitles = True Then
+            If UseAutoCC = True Then
+                command = command & " --write-auto-sub --embed-subs"
+            End If
+        End If
+        command = command & " " & VidURL & " --newline"
         EditLogs = New StreamWriter(Application.StartupPath & "\tempfile.txt")
         EditLogs.WriteLine(command)
         EditLogs.Close()
@@ -672,6 +734,12 @@ EndStart:
         firstVid = False
         EditLogs.Close()
         'MsgBox(NormalDownload.ExitCode.ToString)
+        Dim SaveLoc As String
+        If SaveLocation = "Documents" Then
+            SaveLoc = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        Else
+            SaveLoc = SaveLocation
+        End If
         If NeedToConvert.Contains("TRUE") Then
             Dim command2 As String
             command2 = Chr(34) & FileNameToSave & ".mkv" & Chr(34) & " " & Chr(34) & FileNameToSave & ".mp4" & Chr(34)
@@ -687,14 +755,14 @@ EndStart:
             ConvertDownloadedVid.Close()
             Label8.Text = ""
             If File.Exists(Application.StartupPath & "\" & FileNameToSave & ".mp4") Then
-                File.Copy(Application.StartupPath & "\" & FileNameToSave & ".mp4", My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & FileNameToSave & ".mp4")
+                File.Copy(Application.StartupPath & "\" & FileNameToSave & ".mp4", SaveLoc & "\" & FileNameToSave & ".mp4")
             Else
                 MsgBox("Error in downloading/converting the video, please contact support@serverwebsite.ddns.net")
             End If
         Else
             If SameSelectedFormat.Contains("mp4") Then
                 If File.Exists(Application.StartupPath & "\" & FileNameToSave & ".mp4") Then
-                    File.Copy(Application.StartupPath & "\" & FileNameToSave & ".mp4", My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & FileNameToSave & ".mp4")
+                    File.Copy(Application.StartupPath & "\" & FileNameToSave & ".mp4", SaveLoc & "\" & FileNameToSave & ".mp4")
                     File.Delete(Application.StartupPath & "\" & FileNameToSave & ".mp4")
                 Else
                     MsgBox("Error in downloading the video, please contact support@serverwebsite.ddns.net")
@@ -702,7 +770,7 @@ EndStart:
                 End If
             ElseIf SameSelectedFormat.Contains("webm") Then
                 If File.Exists(Application.StartupPath & "\" & FileNameToSave & ".webm") Then
-                    File.Copy(Application.StartupPath & "\" & FileNameToSave & ".webm", My.Computer.FileSystem.SpecialDirectories.MyDocuments & "\" & FileNameToSave & ".webm")
+                    File.Copy(Application.StartupPath & "\" & FileNameToSave & ".webm", SaveLoc & "\" & FileNameToSave & ".webm")
                     File.Delete(Application.StartupPath & "\" & FileNameToSave & ".webm")
                 Else
                     MsgBox("Error in downloading the video, please contact support@serverwebsite.ddns.net")
@@ -710,6 +778,9 @@ EndStart:
                 End If
             End If
         End If
+        Label8.Text = ""
+        ProgressBar1.Value = 0
+        Label7.Text = ""
         If PostDownloadCmd = True Then
             Process.Start("cmd.exe", "/c " & PDCommand)
         End If
@@ -871,6 +942,24 @@ EndDownloading:
             Else
                 PostDownloadCmd = False
             End If
+            If output1(5).Contains("True") Then
+                UseAutoCC = True
+            Else
+                UseAutoCC = False
+            End If
+            If output1(4).Contains("True") Then
+                UseSubtitles = True
+            Else
+                UseSubtitles = False
+            End If
+            If output1(6).Contains("True") Then
+                DownloadAllCC = True
+            Else
+                DownloadAllCC = False
+            End If
+            Dim output2() As String
+            output2 = output1(8).Split("=")
+            SaveLocation = output2(1)
         Else
             MessageBox.Show("Cannot load current settings as config.ini cannot be found" & vbCrLf & "or cannot be read due to insufficient permissions", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             KeepThumbnailMP3 = True
