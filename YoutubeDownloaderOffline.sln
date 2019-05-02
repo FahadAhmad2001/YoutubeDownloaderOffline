@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "YoutubeDownloaderOffline", "YoutubeDownloaderOffline\YoutubeDownloaderOffline.vbproj", "{B5474116-9F39-480B-A31C-F5018AA4A05E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdatedUIApp", "UpdatedUIApp\UpdatedUIApp.csproj", "{4C290B95-CD28-4541-97E1-4B9FCE293CC5}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "YTDownloadLib", "YTDownloadLib\YTDownloadLib.vbproj", "{58963EC1-702C-4013-8E4B-5524C463FBEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{B5474116-9F39-480B-A31C-F5018AA4A05E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5474116-9F39-480B-A31C-F5018AA4A05E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5474116-9F39-480B-A31C-F5018AA4A05E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C290B95-CD28-4541-97E1-4B9FCE293CC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C290B95-CD28-4541-97E1-4B9FCE293CC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C290B95-CD28-4541-97E1-4B9FCE293CC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C290B95-CD28-4541-97E1-4B9FCE293CC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58963EC1-702C-4013-8E4B-5524C463FBEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58963EC1-702C-4013-8E4B-5524C463FBEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58963EC1-702C-4013-8E4B-5524C463FBEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58963EC1-702C-4013-8E4B-5524C463FBEE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -880,20 +880,20 @@ EndDownloading:
             End If
 
             If output.Data.ToString().Contains("[download] Destination: ") And (ComboBox1.SelectedItem IsNot "MP3 Only") Then
-                    Dim output3() As String
-                    output3 = Regex.Split(output.Data, "download] Destination: ")
-                    Dim CutText As String
-                    If output.Data.ToString().Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
-                        CutText = ".f" & SelectedVideoNumber & "." & SelectedVideoFormat
-                    ElseIf output.Data.ToString().Contains(".f" & SelectedAudioNumber & "." & SelectedAudioFormat) Then
-                        CutText = ".f" & SelectedAudioNumber & "." & SelectedAudioFormat
-                    End If
-                    Dim output4() As String
-                    output4 = Regex.Split(output3(1), CutText)
-                    FileNameToSave = output4(0)
-                    'MsgBox(FileNameToSave)
+                Dim output3() As String
+                output3 = Regex.Split(output.Data, "download] Destination: ")
+                Dim CutText As String
+                If output.Data.ToString().Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
+                    CutText = ".f" & SelectedVideoNumber & "." & SelectedVideoFormat
+                ElseIf output.Data.ToString().Contains(".f" & SelectedAudioNumber & "." & SelectedAudioFormat) Then
+                    CutText = ".f" & SelectedAudioNumber & "." & SelectedAudioFormat
                 End If
-                If output.Data.ToString().Contains("[download]") = True And output.Data.ToString().Contains(" Destination: ") = False And output.Data.Contains(" 100% of ") = False Then
+                Dim output4() As String
+                output4 = Regex.Split(output3(1), CutText)
+                FileNameToSave = output4(0)
+                'MsgBox(FileNameToSave)
+            End If
+            If output.Data.ToString().Contains("[download]") = True And output.Data.ToString().Contains(" Destination: ") = False And output.Data.Contains(" 100% of ") = False Then
                     Dim TextToShow As String
                     Dim output5() As String
                     output5 = Regex.Split(output.Data.ToString(), "download] ")
