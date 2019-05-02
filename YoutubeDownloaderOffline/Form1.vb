@@ -4,6 +4,7 @@ Imports System.IO
 Imports MS.WindowsAPICodePack
 Imports Microsoft.WindowsAPICodePack
 Imports Microsoft.WindowsAPICodePack.Taskbar
+Imports System.Drawing
 Public Class Form1
     Dim GetVidThumbnail As New Process()
     Dim GetVidThumbnailInfo As New ProcessStartInfo(Application.StartupPath & "\youtube-dl.exe")
@@ -67,8 +68,17 @@ Public Class Form1
     Dim UseSubtitles As Boolean
     Dim DownloadAllCC As Boolean
     Dim SaveLocation As String
+    Dim CrntDwnldVidFormat As String
+    Dim CrntDwnldAudFormat As String
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-
+        TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error, Handle)
+        TaskbarManager.Instance.SetProgressValue(40, 100, Handle)
+        NotifyIcon1.Text = "Successfully downloaded"
+        NotifyIcon1.Visible = True
+        NotifyIcon1.Icon = Icon.ExtractAssociatedIcon("icon.ico")
+        NotifyIcon1.BalloonTipIcon = ToolTipIcon.Info
+        NotifyIcon1.BalloonTipText = "Successfully Downloaded"
+        NotifyIcon1.BalloonTipTitle = "LightSpeed YouTube Downloader"
         Label3.Text = ""
         Label4.Text = ""
         Label7.Text = ""
@@ -402,7 +412,7 @@ Public Class Form1
             output2 = output1(1).Split(Chr(10))
             For Each item As String In output2
                 'MsgBox(item)
-                If item.Contains("audio only") Then
+                If item.Contains("audio only") And item.Contains("iB") Then
                     'Dim TempCount As Integer
                     'TempCount = AudioCount
                     Dim output3() As String
@@ -414,14 +424,14 @@ Public Class Form1
                         CurrentAudFormat = "webm"
                     End If
                     Dim output4() As String
-                    output4 = Regex.Split(item, "k, ")
-                    CurrentAudSize = output4(1)
+                    output4 = item.Split(" ")
+                    CurrentAudSize = output4(output4.Count - 1)
                     'TempCount = TempCount + 1
                     'MsgBox(CurrentAudNumber & "TRIM" & CurrentAudFormat & "TRIM" & CurrentAudSize)
                     Audios = Audios & CurrentAudNumber & "TRIM" & CurrentAudFormat & "TRIM" & CurrentAudSize & "NEXT"
 
                     AudioCount = AudioCount + 1
-                ElseIf item.Contains("video only") Then
+                ElseIf item.Contains("video only") And item.Contains("iB") Then
                     ' Dim TempCount As Integer
                     ' TempCount = AudioCount + 1
                     Dim output3() As String
@@ -450,6 +460,18 @@ Public Class Form1
                     ElseIf output5(1).Contains("720p") Then
                         CurrentVidRes = "720p"
                     ElseIf output5(1).Contains("1080p") Then
+                        CurrentVidRes = "1080p"
+                    ElseIf output5(1).Contains("256x144") Then
+                        CurrentVidRes = "144p"
+                    ElseIf output5(1).Contains("426x240") Then
+                        CurrentVidRes = "240p"
+                    ElseIf output5(1).Contains("640x360") Then
+                        CurrentVidRes = "360p"
+                    ElseIf output5(1).Contains("854x480") Then
+                        CurrentVidRes = "480p"
+                    ElseIf output5(1).Contains("1280x720") Then
+                        CurrentVidRes = "720p"
+                    ElseIf output5(1).Contains("1920x1080") Then
                         CurrentVidRes = "1080p"
                     End If
                     'MsgBox(CurrentVidRes)
@@ -544,6 +566,8 @@ EndMetadata:
 
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
         SameSelectedFormat = ""
+        CrntDwnldAudFormat = "null"
+        CrntDwnldVidFormat = "null"
         If DownloadRunning = "FALSE" Then
             If ComboBox1.SelectedItem = "MP3 Only" Then
                 'MsgBox("starting thread")
@@ -617,6 +641,8 @@ EndStart:
                         If PostDownloadCmd = True Then
                             Process.Start("cmd.exe", "/c " & PDCommand)
                         End If
+
+                        NotifyIcon1.ShowBalloonTip(3000)
                         MsgBox("MP3 successfully saved")
                     End If
                 Else
@@ -625,6 +651,7 @@ EndStart:
                     If PostDownloadCmd = True Then
                         Process.Start("cmd.exe", "/c " & PDCommand)
                     End If
+                    NotifyIcon1.ShowBalloonTip(3000)
                     MsgBox("MP3 downloaded successfully and saved in My Documents")
                 End If
             Else
@@ -639,6 +666,7 @@ EndStart:
                         Label8.Text = ""
                         ProgressBar1.Value = 0
                         Label7.Text = ""
+                        NotifyIcon1.ShowBalloonTip(3000)
                         MsgBox("MP3 successfully saved")
                     End If
                 Else
@@ -650,7 +678,8 @@ EndStart:
                     Label8.Text = ""
                     ProgressBar1.Value = 0
                     Label7.Text = ""
-                    MsgBox("MP3 downloaded successfully and saved")
+                    NotifyIcon1.ShowBalloonTip(3000)
+                    MessageBox.Show("MP3 downloaded successfully and saved")
                 End If
             End If
             Label8.Text = ""
@@ -671,15 +700,17 @@ EndStart:
         NeedToConvert = ""
         If SelectedVideoFormat.Contains("webm") And SelectedAudioFormat.Contains("m4a") Then
             NeedToConvert = "TRUE"
-            MsgBox("Format error. Please select a different audio quality")
-            MsgBox("Cross format support is currently under development")
-            GoTo EndDownloading
+            'MsgBox("Format error. Please select a different audio quality")
+            'MsgBox("Cross format support is currently under development")
+            'MsgBox("for debugging: vid webm aud mp4")
+            'GoTo EndDownloading
         End If
         If SelectedVideoFormat.Contains("mp4") And SelectedAudioFormat.Contains("webm") Then
             NeedToConvert = "TRUE"
-            MsgBox("Format error. Please select a different audio quality")
-            MsgBox("Cross format support is currently under development")
-            GoTo EndDownloading
+            'MsgBox("Format error. Please select a different audio quality")
+            'MsgBox("Cross format support is currently under development")
+            'MsgBox("for debugging: vid mp4 aud webm")
+            'GoTo EndDownloading
         End If
         If SelectedVideoFormat.Contains("mp4") And SelectedAudioFormat.Contains("m4a") Then
             NeedToConvert = ""
@@ -741,23 +772,30 @@ EndStart:
             SaveLoc = SaveLocation
         End If
         If NeedToConvert.Contains("TRUE") Then
+            MsgBox("starting conversion")
             Dim command2 As String
-            command2 = Chr(34) & FileNameToSave & ".mkv" & Chr(34) & " " & Chr(34) & FileNameToSave & ".mp4" & Chr(34)
+            command2 = "-i " & Chr(34) & FileNameToSave & ".mkv" & Chr(34) & " " & Chr(34) & FileNameToSave & ".mp4" & Chr(34)
             ConvertDownloadedVidInfo.WindowStyle = ProcessWindowStyle.Hidden
             ConvertDownloadedVidInfo.Arguments = command2
             ConvertDownloadedVidInfo.CreateNoWindow = True
-
+            ConvertDownloadedVidInfo.UseShellExecute = False
+            ConvertDownloadedVidInfo.RedirectStandardError = True
             ConvertDownloadedVid.StartInfo = ConvertDownloadedVidInfo
             ConvertDownloadedVid.Start()
             Label8.Text = "Converting..."
-            MsgBox("converting...")
+            MsgBox("converting..." & vbCrLf & command2)
+            Dim newoutput1 As String
+            newoutput1 = ConvertDownloadedVid.StandardError.ReadToEnd()
             ConvertDownloadedVid.WaitForExit()
             ConvertDownloadedVid.Close()
+            MsgBox(newoutput1)
             Label8.Text = ""
             If File.Exists(Application.StartupPath & "\" & FileNameToSave & ".mp4") Then
                 File.Copy(Application.StartupPath & "\" & FileNameToSave & ".mp4", SaveLoc & "\" & FileNameToSave & ".mp4")
+                File.Delete(Application.StartupPath & "\" & FileNameToSave & ".mp4")
             Else
                 MsgBox("Error in downloading/converting the video, please contact support@serverwebsite.ddns.net")
+                GoTo EndDownloading
             End If
         Else
             If SameSelectedFormat.Contains("mp4") Then
@@ -785,8 +823,9 @@ EndStart:
             Process.Start("cmd.exe", "/c " & PDCommand)
         End If
         NeedToConvert = ""
-
-        MsgBox("Download completed. Video saved in My Documents.")
+        'NotifyIcon1
+        NotifyIcon1.ShowBalloonTip(3000)
+        MsgBox("Download completed")
 EndDownloading:
         DownloadRunning = "FALSE"
         ProgressBar1.Value = 0
@@ -880,18 +919,33 @@ EndDownloading:
             End If
 
             If output.Data.ToString().Contains("[download] Destination: ") And (ComboBox1.SelectedItem IsNot "MP3 Only") Then
-                Dim output3() As String
-                output3 = Regex.Split(output.Data, "download] Destination: ")
-                Dim CutText As String
-                If output.Data.ToString().Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
-                    CutText = ".f" & SelectedVideoNumber & "." & SelectedVideoFormat
-                ElseIf output.Data.ToString().Contains(".f" & SelectedAudioNumber & "." & SelectedAudioFormat) Then
-                    CutText = ".f" & SelectedAudioNumber & "." & SelectedAudioFormat
+                If CrntDwnldAudFormat = "null" And CrntDwnldVidFormat = "null" Then
+                    Dim output3() As String
+                    output3 = Regex.Split(output.Data, "download] Destination: ")
+                    Dim CutText As String
+                    If output.Data.ToString().Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
+                        CutText = ".f" & SelectedVideoNumber & "." & SelectedVideoFormat
+                    ElseIf output.Data.ToString().Contains(".f" & SelectedAudioNumber & "." & SelectedAudioFormat) Then
+                        CutText = ".f" & SelectedAudioNumber & "." & SelectedAudioFormat
+                    End If
+                    Dim output4() As String
+                    output4 = Regex.Split(output3(1), CutText)
+                    FileNameToSave = output4(0)
+                    'MsgBox(FileNameToSave)
+                Else
+                    Dim output3() As String
+                    output3 = Regex.Split(output.Data, "download] Destination: ")
+                    Dim CutText As String
+                    If output.Data.ToString().Contains(".f" & SelectedVideoNumber & "." & SelectedVideoFormat) Then
+                        CutText = ".f" & SelectedVideoNumber & "." & SelectedVideoFormat
+                    ElseIf output.Data.ToString().Contains(".f" & SelectedAudioNumber & "." & SelectedAudioFormat) Then
+                        CutText = ".f" & SelectedAudioNumber & "." & SelectedAudioFormat
+                    End If
+                    Dim output4() As String
+                    output4 = Regex.Split(output3(1), CutText)
+                    MsgBox("for multi format " & output4(0))
                 End If
-                Dim output4() As String
-                output4 = Regex.Split(output3(1), CutText)
-                FileNameToSave = output4(0)
-                'MsgBox(FileNameToSave)
+
             End If
             If output.Data.ToString().Contains("[download]") = True And output.Data.ToString().Contains(" Destination: ") = False And output.Data.Contains(" 100% of ") = False Then
                     Dim TextToShow As String
@@ -920,10 +974,17 @@ EndDownloading:
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        Form2.ShowDialog()
+        If CurrentVersion = NewVersion Then
+            MessageBox.Show("Program is already up to date", "Update", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Else
+            Form2.ShowDialog()
+        End If
+
     End Sub
 
     Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+
+
         AppSettings.ShowDialog()
         Dim ReadINI As StreamReader
         If File.Exists(Application.StartupPath & "\config.ini") Then
