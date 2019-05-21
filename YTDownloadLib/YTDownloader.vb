@@ -8,12 +8,14 @@ Public Class YTDownloader
     Public Event DownloadProgressChanged(ByVal ProgData As DownloadProgress)
     Public Event DownloadCompleted(ByVal ProgData As DownloadProgress)
     Public Sub DownloadVideo(ByVal url As String, ByVal type As DownloadType, Optional ByVal audqual As AudQuality = Nothing, Optional ByVal vidqual As VidQuality = Nothing)
+
         DownloadVid.EnableRaisingEvents = True
         Dim DownloadVidInfo As New ProcessStartInfo(Directory.GetCurrentDirectory & "\VidDownload.bat")
         DownloadVidInfo.CreateNoWindow = True
         DownloadVidInfo.WindowStyle = ProcessWindowStyle.Hidden
         DownloadVidInfo.UseShellExecute = False
         DownloadVidInfo.RedirectStandardOutput = True
+        DownloadVidInfo.RedirectStandardError = True
         DownType = type
         Dim editBAT As StreamWriter
         editBAT = New StreamWriter(Directory.GetCurrentDirectory & "\VidDownload.bat")
@@ -31,9 +33,14 @@ Public Class YTDownloader
         editBAT.Close()
         DownloadVid.StartInfo = DownloadVidInfo
         AddHandler DownloadVid.OutputDataReceived, AddressOf OutputReciever
+        AddHandler DownloadVid.ErrorDataReceived, AddressOf ErrorReciever
         AddHandler DownloadVid.Exited, AddressOf DownloadComplete
         DownloadVid.Start()
         DownloadVid.BeginOutputReadLine()
+        DownloadVid.BeginErrorReadLine()
+    End Sub
+    Private Sub ErrorReciever(sendingProcess As Object, output As DataReceivedEventArgs)
+
     End Sub
     Private Sub OutputReciever(sendingProcess As Object, output As DataReceivedEventArgs)
         If Not String.IsNullOrEmpty(output.Data) Then

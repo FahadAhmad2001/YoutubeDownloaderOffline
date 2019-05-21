@@ -614,12 +614,12 @@ namespace UpdatedUIApp
             if (!string.IsNullOrEmpty(e.Data))
             {
                 //MessageBox.Show(e.Data);
-                if(e.Data.Contains("frame= "))
+                if(e.Data.Contains("frame="))
                 {
                     string[] sparts;
                     string line = e.Data;
                     line.Replace("frame=", "");
-                    line = new Regex("frame= ").Replace(line, "");
+                    line = new Regex("frame=").Replace(line, "");
                     sparts = Regex.Split(line, "fps=");
                     DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = "Converting Video: frame " + sparts[0]));
                 }
