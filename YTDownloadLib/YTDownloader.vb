@@ -17,6 +17,10 @@ Public Class YTDownloader
         DownloadVidInfo.RedirectStandardOutput = True
         DownloadVidInfo.RedirectStandardError = True
         DownType = type
+        If audqual.AudNo IsNot Nothing And vidqual.VidNo IsNot Nothing Then
+            AudQualt = audqual
+            VidQualt = vidqual
+        End If
         Dim editBAT As StreamWriter
         editBAT = New StreamWriter(Directory.GetCurrentDirectory & "\VidDownload.bat")
         If DownType = DownloadType.Standard Then
@@ -52,6 +56,8 @@ Public Class YTDownloader
                 Dim prog As DownloadProgress = New DownloadProgress()
                 prog.ProgType = ProgressType.FileNameGotten
                 prog.ProgressInfo = output1(1)
+                prog.AudQual = AudQualt
+                prog.VidQual = VidQualt
                 RaiseEvent DownloadProgressChanged(prog)
                 prog = New DownloadProgress()
                 prog.ProgType = ProgressType.Converting
@@ -64,8 +70,9 @@ Public Class YTDownloader
                 Dim CutText As String
                 If output.Data.ToString().Contains(".f" & VidQualt.VidNo & "." & VidQualt.Format) Then
                     CutText = ".f" & VidQualt.VidNo & "." & VidQualt.Format
-                ElseIf output.Data.ToString().Contains(".f" & AudQualt.AudNo & "." & AudQualt.Format) Then
-                    CutText = ".f" & AudQualt.AudNo & "." & AudQualt.Format
+                Else 'If output.Data.ToString().Contains(".f" & AudQualt.AudNo & "." & AudQualt.Format) Then
+                    'CutText = ".f" & AudQualt.AudNo & "." & AudQualt.Format
+                    GoTo EndRaiseEvent
                 End If
                 Dim output4() As String
                 output4 = Regex.Split(output3(1), CutText)
@@ -74,7 +81,10 @@ Public Class YTDownloader
                 Dim prog As DownloadProgress = New DownloadProgress()
                 prog.ProgType = ProgressType.FileNameGotten
                 prog.ProgressInfo = output4(0)
+                prog.AudQual = AudQualt
+                prog.VidQual = VidQualt
                 RaiseEvent DownloadProgressChanged(prog)
+EndRaiseEvent:
             End If
             If output.Data.ToString().Contains("[download]") = True And output.Data.ToString().Contains(" Destination: ") = False And output.Data.Contains(" 100% of ") = False Then
                 Dim TextToShow As String
@@ -98,6 +108,8 @@ Public Class YTDownloader
                 prog.ProgType = ProgressType.ProgressChanged
                 prog.ProgressPercentageFromThousand = IntProgress
                 prog.ProgressInfo = TextToShow
+                prog.AudQual = AudQualt
+                prog.VidQual = VidQualt
                 RaiseEvent DownloadProgressChanged(prog)
             End If
         End If
@@ -108,6 +120,8 @@ Public Class YTDownloader
         prog.ProgressPercentageFromThousand = 100
         prog.ProgressInfo = "Download Completed"
         prog.DownType = DownType
+        prog.AudQual = AudQualt
+        prog.VidQual = VidQualt
         RaiseEvent DownloadCompleted(prog)
         DownloadVid.Close()
     End Sub
@@ -129,4 +143,6 @@ Public Structure DownloadProgress
     Dim ProgressPercentageFromThousand As Integer
     Dim ProgressInfo As String
     Dim DownType As DownloadType
+    Dim AudQual As AudQuality
+    Dim VidQual As VidQuality
 End Structure

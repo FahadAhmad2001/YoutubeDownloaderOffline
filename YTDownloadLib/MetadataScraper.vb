@@ -2,10 +2,10 @@
 Imports System.Text.RegularExpressions
 Imports System.Windows.Forms
 Public Class MetadataScraper
-
+    Dim CurrentFolder As String = Directory.GetCurrentDirectory()
     Public Function GetThumbnail(ByVal url As String) As String
         Dim GetThumbProc As Process = New Process()
-        Dim GetThumbInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dl.exe")
+        Dim GetThumbInfo As ProcessStartInfo = New ProcessStartInfo(CurrentFolder & "\youtube-dl.exe")
         GetThumbInfo.UseShellExecute = False
         GetThumbInfo.CreateNoWindow = True
         GetThumbInfo.RedirectStandardOutput = True
@@ -76,7 +76,7 @@ Public Class MetadataScraper
                     CurrentAudio.Format = "webm"
                 End If
                 Dim output4() As String
-                output4 = Regex.Split(item, "k, ")
+                output4 = Regex.Split(item, "Hz\), ")
                 CurrentAudio.FileSize = output4(1)
                 list.Add(CurrentAudio)
             End If
