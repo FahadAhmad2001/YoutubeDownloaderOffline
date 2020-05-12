@@ -56,6 +56,7 @@ namespace UpdatedUIApp
         public bool UsePostDownloadCmd = false;
         public string CmdText = "";
         public string SaveLoc = "Default";
+        public bool isDefaultSaveLoc = true;
         public DownloadPage()
         {
             InitializeComponent();
@@ -83,6 +84,14 @@ namespace UpdatedUIApp
                 UsePostDownloadCmd = data.IsUsingProgAfterDownload;
                 usingMP3Thumbnail = data.IsUsingThumbnail;
                 CmdText = data.ProgAfterDownloadText;
+                if (SaveLoc == "Default")
+                {
+                    isDefaultSaveLoc = true;
+                }
+                else
+                {
+                    isDefaultSaveLoc = false;
+                }
             }
            /* if (AutoUpdate)
             {
@@ -153,48 +162,10 @@ namespace UpdatedUIApp
                 if(File.Exists(AppPath+ "\\" + FileNameNoEXT))
                 {
                     //MessageBox.Show(FileNameNoEXT);
-                    if(File.Exists(savepath + "\\" + FileNameNoEXT))
+                    SaveDownloadedFile(isDefaultSaveLoc, FileFormats.MP3, FileNameNoEXT,SaveLoc);
+                    if (UsePostDownloadCmd)
                     {
-                        MessageBoxResult result = MessageBox.Show("This MP3 has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        if (result == MessageBoxResult.Yes)
-                        {
-                            File.Delete(savepath + "\\" +FileNameNoEXT);
-                            File.Copy(AppPath + "\\" + FileNameNoEXT, savepath + "\\" + FileNameNoEXT);
-                            File.Delete(AppPath + "\\" + FileNameNoEXT);
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                        }
-                        else
-                        {
-                            File.Copy(AppPath + "\\" + FileNameNoEXT, savepath + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".mp3");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT);
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (Directory.Exists(savepath))
-                        {
-                            File.Copy(AppPath + "\\" + FileNameNoEXT, savepath + "\\" + FileNameNoEXT);
-                            File.Delete(AppPath + "\\" + FileNameNoEXT);
-                            
-                        }
-                        else
-                        {
-                            MessageBox.Show("Could not save MP3 in the desired location as it could not be found. Saving to my documents", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                            File.Copy(AppPath + "\\" + FileNameNoEXT, Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT);
-                            File.Delete(AppPath + "\\" + FileNameNoEXT);
-                        }
-                        if (UsePostDownloadCmd)
-                        {
-                            Process.Start("cmd.exe", CmdText);
-                        }
-
+                        Process.Start("cmd.exe", CmdText);
                     }
                     StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
                     DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
@@ -203,7 +174,7 @@ namespace UpdatedUIApp
                     DownloadAudQuality = new AudQuality();
                     DownloadVidQuality = new VidQuality();
                     FileNameNoEXT = "";
-                    MessageBox.Show("MP3 Downloaded successfully and saved" + message);
+                    //MessageBox.Show("MP3 Downloaded successfully and saved" + message);
                 }
                 else
                 {
@@ -249,128 +220,14 @@ namespace UpdatedUIApp
                         MessageBox.Show("Video failed to download");
                         return;
                     }
-                    if (SaveLoc == "Default")
+                    SaveDownloadedFile(isDefaultSaveLoc, FileFormats.MP4, FileNameNoEXT, SaveLoc);
+                    if (UsePostDownloadCmd)
                     {
-                        if(File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4"))
-                        {
-                            MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                File.Delete(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4");
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                                DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                                DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                                if (UsePostDownloadCmd)
-                                {
-                                    Process.Start("cmd.exe", CmdText);
-                                }
-                                MessageBox.Show("Video successfully downloaded to My Documents");
-                            }
-                            else
-                            {
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-"+DateTime.Now.Month+"-"+DateTime.Now.Year+ " "+DateTime.Now.Hour+"-"+DateTime.Now.Minute+ ".mp4");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                                DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                                DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                                if (UsePostDownloadCmd)
-                                {
-                                    Process.Start("cmd.exe", CmdText);
-                                }
-                                MessageBox.Show("Video successfully downloaded to My Documents");
-                            }
-                        }
-                        else
-                        {
-                            File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                            StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                            DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                            DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                            MessageBox.Show("Video successfully downloaded to My Documents");
-                        }
+                        Process.Start("cmd.exe", CmdText);
                     }
-                    else
-                    {
-                        if (File.Exists(SaveLoc + "\\" + FileNameNoEXT + ".mp4"))
-                        {
-                            MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                File.Delete(SaveLoc + "\\" + FileNameNoEXT + ".mp4");
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", SaveLoc + "\\" + FileNameNoEXT + ".mp4");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                                DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                                DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                                if (UsePostDownloadCmd)
-                                {
-                                    Process.Start("cmd.exe", CmdText);
-                                }
-                                MessageBox.Show("Video successfully downloaded");
-                            }
-                            else
-                            {
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", SaveLoc + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".mp4");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                                DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                                DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                                if (UsePostDownloadCmd)
-                                {
-                                    Process.Start("cmd.exe", CmdText);
-                                }
-                                MessageBox.Show("Video successfully downloaded");
-                            }
-                        }
-                        else
-                        {
-                            if (Directory.Exists(SaveLoc))
-                            {
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", SaveLoc + "\\" + FileNameNoEXT + ".mp4");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                            }
-                            else
-                            {
-                                MessageBox.Show("Could not save video in the desired location as it could not be found. Saving to my documents", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                                if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4"))
-                                {
-                                    MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                                    if (result == MessageBoxResult.Yes)
-                                    {
-                                        File.Delete(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4");
-                                        File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4");
-                                        File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                    }
-                                    else
-                                    {
-                                        File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".mp4");
-                                        File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                    }
-                                }
-                                else
-                                {
-                                    File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                }
-                                MessageBox.Show("Video successfully downloaded to My Documents");
-                            }
-                            StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                            DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                            DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                            MessageBox.Show("Video successfully downloaded");
-                        }
-                    }
+                    StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
+                    DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
+                    DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
                     IsDownloadRunning = false;
                     DownloadAudQuality = new AudQuality();
                     DownloadVidQuality = new VidQuality();
@@ -390,128 +247,14 @@ namespace UpdatedUIApp
                         MessageBox.Show("Video failed to download");
                         return;
                     }
-                    if (SaveLoc == "Default")
+                    SaveDownloadedFile(isDefaultSaveLoc, FileFormats.WEBM, FileNameNoEXT, SaveLoc);
+                    if (UsePostDownloadCmd)
                     {
-                        if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm"))
-                        {
-                            MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                File.Delete(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                                DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                                DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                                if (UsePostDownloadCmd)
-                                {
-                                    Process.Start("cmd.exe", CmdText);
-                                }
-                                MessageBox.Show("Video successfully downloaded to My Documents");
-                            }
-                            else
-                            {
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".webm");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                                DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                                DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                                if (UsePostDownloadCmd)
-                                {
-                                    Process.Start("cmd.exe", CmdText);
-                                }
-                                MessageBox.Show("Video successfully downloaded to My Documents");
-                            }
-                        }
-                        else
-                        {
-                            File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                            StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                            DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                            DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                            MessageBox.Show("Video successfully downloaded to My Documents");
-                        }
+                        Process.Start("cmd.exe", CmdText);
                     }
-                    else
-                    {
-                        if (File.Exists(SaveLoc + "\\" + FileNameNoEXT + ".webm"))
-                        {
-                            MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                File.Delete(SaveLoc + "\\" + FileNameNoEXT + ".webm");
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", SaveLoc + "\\" + FileNameNoEXT + ".webm");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                                DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                                DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                                if (UsePostDownloadCmd)
-                                {
-                                    Process.Start("cmd.exe", CmdText);
-                                }
-                                MessageBox.Show("Video successfully downloaded");
-                            }
-                            else
-                            {
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", SaveLoc + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".webm");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                                DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                                DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                                if (UsePostDownloadCmd)
-                                {
-                                    Process.Start("cmd.exe", CmdText);
-                                }
-                                MessageBox.Show("Video successfully downloaded");
-                            }
-                        }
-                        else
-                        {
-                            if (Directory.Exists(SaveLoc))
-                            {
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", SaveLoc + "\\" + FileNameNoEXT + ".webm");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                            }
-                            else
-                            {
-                                MessageBox.Show("Could not save video in the desired location as it could not be found. Saving to my documents", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                                if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm"))
-                                {
-                                    MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                                    if (result == MessageBoxResult.Yes)
-                                    {
-                                        File.Delete(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                        File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                        File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                    }
-                                    else
-                                    {
-                                        File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".webm");
-                                        File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                    }
-                                }
-                                else
-                                {
-                                    File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                }
-                                MessageBox.Show("Video successfully downloaded to My Documents");
-                            }
-                            StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                            DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                            DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                            MessageBox.Show("Video successfully downloaded");
-                        }
-                    }
+                    StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
+                    DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
+                    DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
                     IsDownloadRunning = false;
                     DownloadAudQuality = new AudQuality();
                     DownloadVidQuality = new VidQuality();
@@ -519,6 +262,64 @@ namespace UpdatedUIApp
                 }
             }
             
+        }
+        public void SaveDownloadedFile(bool isDefaultlocation, FileFormats fileformat, string fileName, string savelocation = "")
+        {
+            string saveDir;
+            string message = "";
+            if (isDefaultlocation)
+            {
+                saveDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                message = " to My Documents";
+            }
+            else
+            {
+                saveDir = savelocation;
+            }
+            string fileExt="";
+            if (fileformat == FileFormats.MP3)
+            {
+                fileExt = "";
+            }
+            else if (fileformat == FileFormats.MP4)
+            {
+                fileExt = ".mp4";
+            }
+            else if (fileformat == FileFormats.WEBM)
+            {
+                fileExt = ".webm";
+            }
+        StartTrySave:;
+            if (Directory.Exists(saveDir))
+            {
+                if(File.Exists(saveDir + "\\" + fileName + fileExt))
+                {
+                    MessageBoxResult result = MessageBox.Show("This file has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        File.Delete(saveDir + "\\" + fileName + fileExt);
+                        File.Copy(AppPath + "\\" + fileName + fileExt, saveDir + "\\" + fileName + fileExt);
+                        File.Delete(AppPath + "\\" + fileName + fileExt);
+                    }
+                    else
+                    {
+                        File.Copy(AppPath + "\\" + fileName + fileExt, saveDir + "\\-NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + "-" + DateTime.Now.Second + " " + fileName + fileExt);
+                        File.Delete(AppPath + "\\" + fileName + fileExt);
+                    }
+                }
+                else
+                {
+                    File.Copy(AppPath + "\\" + fileName + fileExt, saveDir + "\\" + fileName + fileExt);
+                    File.Delete(AppPath + "\\" + fileName + fileExt);
+                }
+                MessageBox.Show("File saved successfully" + message, "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Cannot save the file in the desired location as the location cannot be found. Saving to my documents", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                saveDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                goto StartTrySave;
+            }
         }
         public void ConvertFromMKV(string filename, bool IsToMP4)
         {
@@ -548,92 +349,15 @@ namespace UpdatedUIApp
             {
                 if (File.Exists(AppPath + "\\" + FileNameNoEXT + ".mp4"))
                 {
-                    string savePath = "";
-                    string message = "";
-                    if (SaveLoc == "Default")
+                    SaveDownloadedFile(isDefaultSaveLoc, FileFormats.MP4, FileNameNoEXT, SaveLoc);
+                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
+                    if (UsePostDownloadCmd)
                     {
-                        savePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                        message = " to My Documents";
+                        Process.Start("cmd.exe", CmdText);
                     }
-                    else
-                    {
-                        savePath = SaveLoc;
-                    }
-                    if(File.Exists(savePath + "\\" + FileNameNoEXT + ".mp4"))
-                    {
-                        MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        if (result == MessageBoxResult.Yes)
-                        {
-                            File.Delete(savePath + "\\" + FileNameNoEXT + ".mp4");
-                            File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", savePath + "\\" + FileNameNoEXT + ".mp4");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                        }
-                        else
-                        {
-                            File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", savePath + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".mp4");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (Directory.Exists(savePath))
-                        {
-                            File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", savePath + "\\" + FileNameNoEXT + ".mp4");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                        }
-                        else
-                        {
-                            MessageBox.Show("Cannot save the video in the desired location as the location cannot be found. Saving to my documents", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4"))
-                            {
-                                MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                                if (result == MessageBoxResult.Yes)
-                                {
-                                    File.Delete(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4");
-                                    File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                                }
-                                else
-                                {
-                                    File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".mp4");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                                }
-                            }
-                            else
-                            {
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".mp4", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".mp4");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".mp4");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                            }
-                        }
-                        if (UsePostDownloadCmd)
-                        {
-                            Process.Start("cmd.exe", CmdText);
-                        }
-                    }
-                    DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                    DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                    StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                    MessageBox.Show("Video downloaded successfully and saved " + message);
                 }
                 else
                 {
-                    DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                    DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                    StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
                     MessageBox.Show("Failed to download video");
                 }
             }
@@ -641,95 +365,21 @@ namespace UpdatedUIApp
             {
                 if (File.Exists(AppPath + "\\" + FileNameNoEXT + ".webm"))
                 {
-                    string savePath = "";
-                    string message = "";
-                    if (SaveLoc == "Default")
+                    SaveDownloadedFile(isDefaultSaveLoc, FileFormats.WEBM, FileNameNoEXT, SaveLoc);
+                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
+                    if (UsePostDownloadCmd)
                     {
-                        savePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                        message = " to My Documents";
+                        Process.Start("cmd.exe", CmdText);
                     }
-                    else
-                    {
-                        savePath = SaveLoc;
-                    }
-                    if (File.Exists(savePath + "\\" + FileNameNoEXT + ".webm"))
-                    {
-                        MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        if (result == MessageBoxResult.Yes)
-                        {
-                            File.Delete(savePath + "\\" + FileNameNoEXT + ".webm");
-                            File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", savePath + "\\" + FileNameNoEXT + ".webm");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                        }
-                        else
-                        {
-                            File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", savePath + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".webm");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                            if (UsePostDownloadCmd)
-                            {
-                                Process.Start("cmd.exe", CmdText);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (Directory.Exists(savePath))
-                        {
-                            File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", savePath + "\\" + FileNameNoEXT + ".webm");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                            File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                        }
-                        else
-                        {
-                            MessageBox.Show("Cannot save the video in the desired location as the location cannot be found. Saving to my documents", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm"))
-                            {
-                                MessageBoxResult result = MessageBox.Show("This video has been downloaded previously. Would you like to overwrite it?" + Environment.NewLine + "Otherwise its saved with a different filename", "Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                                if (result == MessageBoxResult.Yes)
-                                {
-                                    File.Delete(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                    File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                                }
-                                else
-                                {
-                                    File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + " -NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + ".webm");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                    File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                                }
-                            }
-                            else
-                            {
-                                File.Copy(AppPath + "\\" + FileNameNoEXT + ".webm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + FileNameNoEXT + ".webm");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".webm");
-                                File.Delete(AppPath + "\\" + FileNameNoEXT + ".mkv");
-                            }
-                        }
-                        if (UsePostDownloadCmd)
-                        {
-                            Process.Start("cmd.exe", CmdText);
-                        }
-                    }
-                    DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                    DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                    StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
-                    MessageBox.Show("Video downloaded successfully and saved " + message);
                 }
                 else
                 {
-                    DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
-                    DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
-                    StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
                     MessageBox.Show("Failed to download video");
                 }
             }
+            DownloadProgressBar.Dispatcher.Invoke(new Action(() => DownloadProgressBar.Value = 0));
+            DownloadStatus.Dispatcher.Invoke(new Action(() => DownloadStatus.Content = ""));
+            StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));
             IsDownloadRunning = false;
             DownloadAudQuality = new AudQuality();
             DownloadVidQuality = new VidQuality();
@@ -776,54 +426,7 @@ namespace UpdatedUIApp
 
         public void SetVideoMetadata()
         {
-            //StatusText.Content = "Status:Getting Metadata...";
-            //StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = "Status: Getting Metadata"));
             StatusText.Content = "Status: Getting Metadata";
-            //thumbnail.Source = back;
-            //if()
-            //  thumbnail.Dispatcher.Invoke(new Action(() =>
-            //  BitmapImage back = new BitmapImage()
-            //  back.BeginInit()
-            //  back.UriSource = new Uri(@"Resources/blank.jpg", UriKind.RelativeOrAbsolute)
-            //  back.EndInit()
-            //thumbnail.Source=back))
-            //thumbnail.Source.
-           // if (File.Exists(AppPath + "\\thumbnail.jpg"))
-           // {
-           //     File.Delete(AppPath + "\\thumbnail.jpg");
-           // }
-            //    GetThumbnailInfo.UseShellExecute = false;
-
-            /*    GetThumbnailInfo.Arguments = "--get-thumbnail " + VidURL;
-                GetThumbnailInfo.CreateNoWindow = true;
-                GetThumbnailInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                GetThumbnailInfo.RedirectStandardOutput = true;
-                GetThumbnail.StartInfo = GetThumbnailInfo;
-                GetThumbnail.Start();
-                string ThumbURL = GetThumbnail.StandardOutput.ReadToEnd();
-                GetThumbnail.WaitForExit();
-                GetThumbnail.Close();
-                string[] URLoutputs = Regex.Split(ThumbURL, "\n");
-                ThumbURL = URLoutputs[0];
-                //ThumbURL=ThumbURL.TrimEnd()
-                MessageBox.Show("Starting pic download");
-                MetadataHelper.DownloadFile("http://192.168.1.9/new_logo_label.png", "thumbnail.png");
-                BitmapImage thumbnailPic = new BitmapImage();
-                thumbnailPic.BeginInit();
-                thumbnailPic.UriSource = new Uri(@"thumbnail.jpg", UriKind.RelativeOrAbsolute);
-                thumbnailPic.EndInit();
-                GetTitleInfo.CreateNoWindow = true;
-                GetTitleInfo.Arguments = "--get-title " + VidURL;
-                GetTitleInfo.UseShellExecute = false;
-                GetTitleInfo.RedirectStandardOutput = true;
-                GetTitleInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                GetTitle.StartInfo = GetTitleInfo;
-                GetTitle.Start();
-                VidTitleName = GetTitle.StandardOutput.ReadToEnd();
-                GetTitle.WaitForExit();
-                GetTitle.Close();
-                VidTitle.Dispatcher.Invoke(new Action(() => VidTitle.Content=VidTitleName));
-                StatusText.Dispatcher.Invoke(new Action(() => StatusText.Content = ""));*/
             MetadataScraper scraper = new MetadataScraper();
             VidInfo = scraper.GetMetadata(VidURL, true, AppPath + "\\thumbnail.jpg");
             VidTitle.Content = VidInfo.VidTitle;
@@ -831,7 +434,6 @@ namespace UpdatedUIApp
             BitmapImage thumbnailPic = new BitmapImage();
             thumbnailPic.BeginInit();
             thumbnailPic.UriSource = new Uri(VidInfo.ThumbnailURL, UriKind.RelativeOrAbsolute);
-           // thumbnailPic.CacheOption = BitmapCacheOption.None;
             thumbnailPic.EndInit();
             thumbnail.Source = thumbnailPic;
             VidQualities = VidInfo.VidQualities;
@@ -945,6 +547,12 @@ namespace UpdatedUIApp
                 }
             }
             
+        }
+        public enum FileFormats
+        {
+            MP3=0,
+            MP4,
+            WEBM
         }
     }
 }
