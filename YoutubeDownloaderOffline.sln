@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdatedUIApp", "UpdatedUIAp
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "YTDownloadLib", "YTDownloadLib\YTDownloadLib.vbproj", "{58963EC1-702C-4013-8E4B-5524C463FBEE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTDLBackendServer", "YTDLBackendServer\YTDLBackendServer.csproj", "{5279DA65-36AC-4885-9A8C-C7F4C90EF4E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{58963EC1-702C-4013-8E4B-5524C463FBEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58963EC1-702C-4013-8E4B-5524C463FBEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58963EC1-702C-4013-8E4B-5524C463FBEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5279DA65-36AC-4885-9A8C-C7F4C90EF4E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5279DA65-36AC-4885-9A8C-C7F4C90EF4E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5279DA65-36AC-4885-9A8C-C7F4C90EF4E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5279DA65-36AC-4885-9A8C-C7F4C90EF4E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
