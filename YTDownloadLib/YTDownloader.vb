@@ -5,10 +5,11 @@ Public Class YTDownloader
     Dim DownloadVid As Process = New Process()
     Dim AudQualt As AudQuality
     Dim VidQualt As VidQuality
+    Dim VidID As String
     Public Event DownloadProgressChanged(ByVal ProgData As DownloadProgress)
     Public Event DownloadCompleted(ByVal ProgData As DownloadProgress)
     Public Sub DownloadVideo(ByVal url As String, ByVal type As DownloadType, Optional ByVal audqual As AudQuality = Nothing, Optional ByVal vidqual As VidQuality = Nothing)
-
+        VidID = url.Split("=")(1)
         DownloadVid.EnableRaisingEvents = True
         Dim DownloadVidInfo As New ProcessStartInfo(Directory.GetCurrentDirectory & "\VidDownload.bat")
         DownloadVidInfo.CreateNoWindow = True
@@ -58,10 +59,12 @@ Public Class YTDownloader
                 prog.ProgressInfo = output1(1)
                 prog.AudQual = AudQualt
                 prog.VidQual = VidQualt
+                prog.VidID = VidID
                 RaiseEvent DownloadProgressChanged(prog)
                 prog = New DownloadProgress()
                 prog.ProgType = ProgressType.Converting
                 prog.ProgressInfo = "Converting to MP3..."
+                prog.VidID = VidID
                 RaiseEvent DownloadProgressChanged(prog)
             End If
             If output.Data.ToString().Contains("[download] Destination: ") And (DownType = DownloadType.CustomQuality) Then
@@ -83,6 +86,7 @@ Public Class YTDownloader
                 prog.ProgressInfo = output4(0)
                 prog.AudQual = AudQualt
                 prog.VidQual = VidQualt
+                prog.VidID = VidID
                 RaiseEvent DownloadProgressChanged(prog)
 EndRaiseEvent:
             End If
@@ -110,6 +114,7 @@ EndRaiseEvent:
                 prog.ProgressInfo = TextToShow
                 prog.AudQual = AudQualt
                 prog.VidQual = VidQualt
+                prog.VidID = VidID
                 RaiseEvent DownloadProgressChanged(prog)
             End If
         End If
@@ -122,6 +127,7 @@ EndRaiseEvent:
         prog.DownType = DownType
         prog.AudQual = AudQualt
         prog.VidQual = VidQualt
+        prog.VidID = VidID
         RaiseEvent DownloadCompleted(prog)
         DownloadVid.Close()
     End Sub
@@ -145,4 +151,5 @@ Public Structure DownloadProgress
     Dim DownType As DownloadType
     Dim AudQual As AudQuality
     Dim VidQual As VidQuality
+    Dim VidID As String
 End Structure
