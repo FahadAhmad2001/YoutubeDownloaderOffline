@@ -160,5 +160,11 @@
     </None>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dependencies\Dependencies.csproj">
+      <Project>{b6d5cb19-39b7-4742-9d9b-b442afd3a293}</Project>
+      <Name>Dependencies</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
