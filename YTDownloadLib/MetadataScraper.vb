@@ -185,7 +185,6 @@ Public Class MetadataScraper
         QualOutput = GetVidQual.StandardOutput.ReadToEnd()
         GetVidQual.WaitForExit()
         GetVidQual.Close()
-        File.WriteAllText("output.txt", QualOutput)
         Dim GetVidThumbnail As Process = New Process()
         Dim GetVidThumbnailInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dl.exe")
         GetVidThumbnailInfo.UseShellExecute = False

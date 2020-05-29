@@ -35,13 +35,15 @@
     </Page.Resources>
     <Grid Width="792" Height="348.992">
         <Label Content="Playlist Downloader" HorizontalAlignment="Left" Margin="49.887,15.169,0,0" VerticalAlignment="Top" Foreground="White" FontSize="20"/>
-        
+
         <Button x:Name="BackButton" Style="{StaticResource NoHoverEffect}" Content="Back" HorizontalAlignment="Left" Margin="690.425,304.728,0,0" VerticalAlignment="Top" Width="75" Foreground="White" Click="BackButton_Click"/>
         <!-- The following code is from https://grandpappy.wordpress.com/2013/04/18/wpf-scrollviewer-that-fades-edges-of-the-content/ -->
-        <resources:FadingScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" Margin="10,52.169,10,49.248" FadedEdgeThickness="20" FadedEdgeOpacity="0" FadedEdgeFalloffSpeed="4">
+        <resources:FadingScrollViewer x:Name="AllVideosList" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Margin="10,52.169,10,49.248" FadedEdgeThickness="20" FadedEdgeOpacity="0" FadedEdgeFalloffSpeed="4">
             <resources:FadingScrollViewer.Template>
                 <ControlTemplate TargetType="{x:Type ScrollViewer}">
                     <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                        <!-- Background="{TemplateBinding Background}" this was removed from after x:Name="Grid"-->
+
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -60,8 +62,32 @@
                     </Grid>
                 </ControlTemplate>
             </resources:FadingScrollViewer.Template>
-            <GroupBox Header="GroupBox" Height="592.618" Width="753.064" VerticalAlignment="Top"/>
+
             <!-- Your content here -->
+            <ItemsControl Name="ListOfVideos">
+                <ItemsControl.Background>
+                    <SolidColorBrush Color="Black" Opacity="0"/>
+                </ItemsControl.Background>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="400"/>
+                                <ColumnDefinition Width="200"/>
+                            </Grid.ColumnDefinitions>
+                            <Image HorizontalAlignment="Left" Height="100" Width="175" x:Name="VideoThumbnailImage" Stretch="Fill" Source="{Binding VideoThumbnailURL}" Grid.Column="0"></Image>
+                            <Label x:Name="VideoTitleLabel" Content="{Binding VideoTitleText}" Foreground="White" Grid.Column="1" VerticalAlignment="Top" FontSize="16" FontWeight="Bold"></Label>
+                            <Label x:Name="VideoFileSizeLabel" Content="{Binding VideoTotalSizeText}" Foreground="White" FontSize="14" Grid.Column="1" Margin="0,0,0,35" VerticalAlignment="Bottom"></Label>
+                            <Label x:Name="VideoProgressLabel" Content="{Binding VideoStatusText}" Foreground="White" FontSize="14" Grid.Column="1" VerticalAlignment="Bottom"></Label>
+                            <ComboBox x:Name="VideoComboBox" Grid.Column="2" Width="147.731" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,50" ItemsSource="{Binding VideoQualitiesList}"></ComboBox>
+                            <Label Content="Video Quality" Foreground="White" FontSize="14" VerticalAlignment="Top" Grid.Column="2" HorizontalAlignment="Center"></Label>
+                            <Label Content="Audio Quality" Foreground="White" FontSize="14" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,27" Grid.Column="2"></Label>
+                            <Slider x:Name="VideoAudioSlider" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="147.731" Maximum="{Binding AudioCount}"></Slider>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
         </resources:FadingScrollViewer>
         <Label Content="Link:" HorizontalAlignment="Left" Margin="255.379,18.928,0,0" VerticalAlignment="Top" Foreground="White" FontSize="14"/>
