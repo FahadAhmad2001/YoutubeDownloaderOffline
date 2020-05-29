@@ -554,5 +554,10 @@ namespace UpdatedUIApp
             MP4,
             WEBM
         }
+
+        private void PlaylistDownload_Click(object sender, RoutedEventArgs e)
+        {
+            this.NavigationService.Navigate(new Uri("PlaylistPage.xaml", UriKind.Relative));
+        }
     }
 }

@@ -47,6 +47,7 @@
         <Label x:Name="DownloadStatus" Content="Downloading:" HorizontalAlignment="Left" Margin="18.266,271.953,0,0" VerticalAlignment="Top" Foreground="White" FontSize="20" FontWeight="Medium"/>
         <Button x:Name="DownloadButton" Style="{StaticResource NoHoverEffect}" Content="Download" HorizontalAlignment="Left" Margin="684.235,275.737,0,0" VerticalAlignment="Top" Width="82.367" Height="37" Foreground="White" FontSize="16" Click="DownloadButton_Click"/>
         <Label x:Name="FileSizeLabel" Content="Downloading:" HorizontalAlignment="Left" Margin="18.266,181.161,0,0" VerticalAlignment="Top" Foreground="White" FontSize="20" FontWeight="Medium"/>
+        <Button x:Name="PlaylistDownload" Style="{StaticResource NoHoverEffect}" Content="Download Playlist" HorizontalAlignment="Left" Margin="651.475,232.18,0,0" VerticalAlignment="Top" Width="115.127" Click="PlaylistDownload_Click" Foreground="White" Height="33.387"/>
 
     </Grid>
 </Page>
