@@ -13,6 +13,13 @@ Free, easy to use YouTube downloader
 - Subtitle support
 - Playlist support
 
+## Credits
+
+This program uses the following software to function
+
+- [Youtube-dl](https://github.com/ytdl-org/youtube-dl)
+- [FFmpeg](https://ffmpeg.org/)
+
 ## Backend Server Usage
 
 You can use the backend server to host your own YouTube downloading website
