@@ -80,10 +80,10 @@
                             <Label x:Name="VideoTitleLabel" Content="{Binding VideoTitleText}" Foreground="White" Grid.Column="1" VerticalAlignment="Top" FontSize="16" FontWeight="Bold"></Label>
                             <Label x:Name="VideoFileSizeLabel" Content="{Binding VideoTotalSizeText}" Foreground="White" FontSize="14" Grid.Column="1" Margin="0,0,0,35" VerticalAlignment="Bottom"></Label>
                             <Label x:Name="VideoProgressLabel" Content="{Binding VideoStatusText}" Foreground="White" FontSize="14" Grid.Column="1" VerticalAlignment="Bottom"></Label>
-                            <ComboBox x:Name="VideoComboBox" Grid.Column="2" Width="147.731" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,50" ItemsSource="{Binding VideoQualitiesList}"></ComboBox>
+                            <ComboBox x:Name="VideoComboBox" SelectionChanged="VideoComboBox_SelectionChanged" Grid.Column="2" Width="147.731" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,50" ItemsSource="{Binding VideoQualitiesList}"></ComboBox>
                             <Label Content="Video Quality" Foreground="White" FontSize="14" VerticalAlignment="Top" Grid.Column="2" HorizontalAlignment="Center"></Label>
                             <Label Content="Audio Quality" Foreground="White" FontSize="14" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,27" Grid.Column="2"></Label>
-                            <Slider x:Name="VideoAudioSlider" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="147.731" Maximum="{Binding AudioCount}"></Slider>
+                            <Slider x:Name="VideoAudioSlider" SmallChange="1" Minimum="1" ValueChanged="VideoAudioSlider_ValueChanged" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="147.731" Maximum="{Binding AudioCount}"></Slider>
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

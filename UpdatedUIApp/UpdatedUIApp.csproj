@@ -57,6 +57,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Resources\ScrollViewEdges.cs" />
+    <Compile Include="Resources\Utils.cs" />
     <Page Include="DownloadPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
