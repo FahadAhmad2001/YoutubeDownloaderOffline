@@ -7,6 +7,7 @@
       xmlns:local="clr-namespace:UpdatedUIApp"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
+      Loaded="Page_Loaded"
       Title="PlaylistPage">
     <Page.Resources>
         <Style x:Key="NoHoverEffect" TargetType="Button">
@@ -92,5 +93,7 @@
         </resources:FadingScrollViewer>
         <Label Content="Link:" HorizontalAlignment="Left" Margin="255.379,18.928,0,0" VerticalAlignment="Top" Foreground="White" FontSize="14"/>
         <TextBox x:Name="URLBox" HorizontalAlignment="Left" Height="23" Margin="339.454,18.928,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="351.894" TextChanged="TextBox_TextChanged"/>
+        <Button x:Name="DownloadButton" Style="{StaticResource NoHoverEffect}" Content="Download" HorizontalAlignment="Left" Margin="576,304.752,0,0" Foreground="White" VerticalAlignment="Top" Width="75" Click="DownloadButton_Click"/>
+        <Label x:Name="PlaylistStatus" Content="Status:" HorizontalAlignment="Left" Margin="72,299,0,0" VerticalAlignment="Top" Foreground="White" FontSize="16"/>
     </Grid>
 </Page>

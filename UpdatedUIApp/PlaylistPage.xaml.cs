@@ -17,6 +17,7 @@ using System.IO;
 using System.Threading;
 using System.Reflection;
 using UpdatedUIApp.Resources;
+using UpdatedUIApp.ConfigReader;
 using System.Text.RegularExpressions;
 
 namespace UpdatedUIApp
@@ -26,13 +27,30 @@ namespace UpdatedUIApp
     /// </summary>
     public partial class PlaylistPage : Page
     {
-        
+        YTDownloader downloader = new YTDownloader();
+        ConfigData Cfgdata;
         public PlaylistPage()
         {
             InitializeComponent();
+            
         }
+
+        
+
         string playListURL;
         List<VideoQualityInfo> VidQualityInfoList = new List<VideoQualityInfo>();
+        DownloadType CurrentDownloadType;
+        string CurrentDownloadID = "";
+        string FileName = "";
+        bool IsCrossFormat=false;
+        bool IsDefaultSaveLoc = false;
+        string SaveLoc = "";
+        string Fileformat = "";
+        bool IsUsingMP3Thumbnail = false;
+        public string AppPath = Directory.GetCurrentDirectory();
+        VidQuality CurrentVidQuality = new VidQuality();
+        AudQuality CurrentAudQuality = new AudQuality();
+        List<VideoQualityInfo> AllVideosInfoList = new List<VideoQualityInfo>();
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             this.NavigationService.Navigate(new Uri("DownloadPage.xaml", UriKind.Relative));
@@ -167,6 +185,7 @@ namespace UpdatedUIApp
                 }
                 VidQualityInfoList.Remove(CurrentVid);
                 VidQualityInfoList.Add(CurrentVidUpdated);
+                AllVideosInfoList = VidQualityInfoList;
              }
              //ContentPresenter CurrentContentPresenter = /*FindVisualChild<ContentPresenter>(CurrentItem)*/ //(ContentPresenter)CurrentItem;
                                                                                                              /*DataTemplate CurrentDataTemplate = CurrentContentPresenter.ContentTemplate;
@@ -238,6 +257,10 @@ namespace UpdatedUIApp
                         SelectedVidQuality = quality;
                     }
                 }
+                if((SelectedAudQuality.Format=="webm"&&SelectedVidQuality.Format=="mp4") || (SelectedAudQuality.Format == "m4a" && SelectedVidQuality.Format == "webm"))
+                {
+                    CurrentVidUpdated.IsCrossFormat = true;
+                }
                 if (CurrentItem.TryFindVisualChildByName("VideoFileSizeLabel", out Label label))
                 {
                     label.Content = "Total File Size: " + SelectedVidQuality.FileSize + " (VIDEO) + " + SelectedAudQuality.FileSize + " (AUDIO)";
@@ -245,6 +268,261 @@ namespace UpdatedUIApp
             }
             VidQualityInfoList.Remove(CurrentVid);
             VidQualityInfoList.Add(CurrentVidUpdated);
+            AllVideosInfoList = VidQualityInfoList;
+        }
+
+        private void DownloadButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (AllVideosInfoList.Count > 0)
+            {
+                if (AllVideosInfoList[0].IsMP3Only)
+                {
+                    if (IsUsingMP3Thumbnail)
+                    {
+                        CurrentDownloadID = AllVideosInfoList[0].VidID;
+                        CurrentDownloadType = DownloadType.MP3Pic;
+                        downloader.DownloadVideo("https://www.youtube.com/watch?v=" + AllVideosInfoList[0].VidID, DownloadType.MP3Pic);
+                    }
+                    else
+                    {
+                        CurrentDownloadID = AllVideosInfoList[0].VidID;
+                        CurrentDownloadType = DownloadType.MP3Only;
+                        downloader.DownloadVideo("https://www.youtube.com/watch?v=" + AllVideosInfoList[0].VidID, DownloadType.MP3Only);
+                    }
+                }
+                else
+                {
+                    CurrentDownloadType = DownloadType.CustomQuality;
+                    CurrentDownloadID = AllVideosInfoList[0].VidID;
+                    VideoQualityInfo NewDownloadInfo = AllVideosInfoList[0];
+                    AudQuality aQuality = new AudQuality();
+                    aQuality.AudNo = NewDownloadInfo.SelectedAudQuality.ToString();
+                    VidQuality vQuality = new VidQuality();
+                    vQuality.VidNo = NewDownloadInfo.SelectedVidQuality.ToString();
+                    IsCrossFormat = NewDownloadInfo.IsCrossFormat;
+                    CurrentAudQuality = aQuality;
+                    CurrentVidQuality = vQuality;
+                    downloader.DownloadVideo("https://www.youtube.com/watch/?v=" + NewDownloadInfo.VidID, DownloadType.CustomQuality, aQuality, vQuality);
+                }
+            }
+        }
+
+        private void Downloader_DownloadProgressChanged(DownloadProgress ProgData)
+        {
+            if (ProgData.ProgType == ProgressType.ProgressChanged)
+            {
+                foreach(VideoQualityInfo info in AllVideosInfoList)
+                {
+                    if (info.VidID == ProgData.VidID)
+                    {
+                        foreach (object item in ListOfVideos.Items)
+                        {
+                            UIElement currentItem = (UIElement)ListOfVideos.ItemContainerGenerator.ContainerFromItem(item);
+                            ContentPresenter currentContentPresenter = (ContentPresenter)currentItem;
+                            DataTemplate currentDataTemplate = currentContentPresenter.ContentTemplate;
+                            if(currentItem.TryFindVisualChildByName("VideoProgressLabel",out Label label))
+                            {
+                                label.Content = "Status: " + ProgData.ProgressInfo;
+                            }
+                        }
+                    }
+                }
+                PlaylistStatus.Content = "Status: " + ProgData.ProgressInfo;
+            }
+            else if (ProgData.ProgType == ProgressType.FileNameGotten)
+            {
+                if (ProgData.DownType == DownloadType.MP3Only || ProgData.DownType == DownloadType.MP3Pic)
+                {
+                    FileName = ProgData.ProgressInfo;
+                    Fileformat = "mp3";
+                }
+                else
+                {
+                    if (IsCrossFormat)
+                    {
+                        FileName = ProgData.ProgressInfo + ".mkv";
+                        Fileformat = "mkv";
+                    }
+                    else
+                    {
+                        if (CurrentVidQuality.Format == "mp4")
+                        {
+                            FileName = ProgData.ProgressInfo + ".mp4";
+                            Fileformat = "mp4";
+                        }
+                        else if (CurrentVidQuality.Format == "webm")
+                        {
+                            FileName = ProgData.ProgressInfo + "webm";
+                            Fileformat = "webm";
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Downloader_DownloadCompleted(DownloadProgress ProgData)
+        {
+            string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (File.Exists(AppPath + "\\" + FileName))
+            {
+                if (IsDefaultSaveLoc)
+                {
+                    if (File.Exists(documents + "\\" + FileName))
+                    {
+                        MessageBoxResult reply = MessageBox.Show("File already exists in My documents, would you like to overwrite it?", "File exists", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                        if (reply == MessageBoxResult.Yes)
+                        {
+                            File.Delete(documents + "\\" + FileName);
+                            File.Copy(AppPath + "\\" + FileName, documents + "\\" + FileName);
+                            File.Delete(AppPath + "\\" + FileName);
+                        }
+                        else
+                        {
+                            File.Copy(AppPath + "\\" + FileName, documents + "\\" + FileName + "-NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + "-" + DateTime.Now.Second + "." + Fileformat);
+                            File.Delete(AppPath + "\\" + FileName);
+                        }
+                    }
+                    else
+                    {
+                        File.Copy(AppPath + "\\" + FileName, documents + "\\" + FileName);
+                        File.Delete(AppPath + "\\" + FileName);
+                    }
+                }
+                else
+                {
+                    if (Directory.Exists(SaveLoc))
+                    {
+                        if (File.Exists(SaveLoc + "\\" + FileName))
+                        {
+                            MessageBoxResult result = MessageBox.Show("File already exists in save location, would you like to overwrite it?", "File exists", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                File.Delete(SaveLoc + "\\" + FileName);
+                                File.Copy(AppPath + "\\" + FileName, SaveLoc + "\\" + FileName);
+                                File.Delete(AppPath + "\\" + FileName);
+                            }
+                            else
+                            {
+                                File.Copy(AppPath + "\\" + FileName, SaveLoc + "\\" + FileName + "-NEW-" + DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year + " " + DateTime.Now.Hour + "-" + DateTime.Now.Minute + "-" + DateTime.Now.Second + "." + Fileformat);
+                                File.Delete(AppPath + "\\" + FileName);
+                            }
+                        }
+                        else
+                        {
+                            File.Copy(AppPath + "\\" + FileName, SaveLoc + "\\" + FileName);
+                            File.Delete(AppPath + "\\" + FileName);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Save directory could not be found, saving to My Documents", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        if(File.Exists(documents+"\\" + FileName))
+                        {
+                            MessageBoxResult reply = MessageBox.Show("File already exists in My documents, would you like to overwrite it?", "File exists", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                            if (reply == MessageBoxResult.Yes)
+                            {
+                                File.Delete(documents + "\\" + FileName);
+                                File.Copy(AppPath + "\\" + FileName, documents + "\\" + FileName);
+                                File.Delete(AppPath + "\\" + FileName);
+                            }
+                            else
+                            {
+                                File.Copy(AppPath + "\\" + FileName, documents + "\\" + FileName+ "-NEW-" +DateTime.Now.Day+"-"+DateTime.Now.Month+"-"+DateTime.Now.Year+" " +DateTime.Now.Hour+"-"+DateTime.Now.Minute+"-"+DateTime.Now.Second+"."+Fileformat);
+                                File.Delete(AppPath + "\\" + FileName);
+                            }
+                        }
+                        else
+                        {
+                            File.Copy(AppPath + "\\" + FileName, documents + "\\" + FileName);
+                            File.Delete(AppPath + "\\" + FileName);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Failed to download the following video:\nhttps://www.youtube.com/watch/?v=" + ProgData.VidID+"\nfrom the playlist","Error",MessageBoxButton.OK,MessageBoxImage.Error);
+            }
+            VideoQualityInfo CurrentVid = new VideoQualityInfo();
+            foreach(VideoQualityInfo info in AllVideosInfoList)
+            {
+                if (info.VidID == ProgData.VidID)
+                {
+                    CurrentVid = info;
+                }
+            }
+            AllVideosInfoList.Remove(CurrentVid);
+            if (AllVideosInfoList.Count > 0)
+            {
+                downloader = new YTDownloader();
+                downloader.DownloadCompleted += Downloader_DownloadCompleted;
+                downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
+                if (AllVideosInfoList[0].IsMP3Only)
+                {
+                    if (IsUsingMP3Thumbnail)
+                    {
+                        CurrentDownloadID = AllVideosInfoList[0].VidID;
+                        CurrentDownloadType = DownloadType.MP3Pic;
+                        downloader.DownloadVideo("https://www.youtube.com/watch?v=" + AllVideosInfoList[0].VidID, DownloadType.MP3Pic);
+                    }
+                    else
+                    {
+                        CurrentDownloadID = AllVideosInfoList[0].VidID;
+                        CurrentDownloadType = DownloadType.MP3Only;
+                        downloader.DownloadVideo("https://www.youtube.com/watch?v=" + AllVideosInfoList[0].VidID, DownloadType.MP3Only);
+                    }
+                }
+                else
+                {
+                    CurrentDownloadType = DownloadType.CustomQuality;
+                    CurrentDownloadID = AllVideosInfoList[0].VidID;
+                    VideoQualityInfo NewDownloadInfo = AllVideosInfoList[0];
+                    AudQuality aQuality = new AudQuality();
+                    aQuality.AudNo = NewDownloadInfo.SelectedAudQuality.ToString();
+                    VidQuality vQuality = new VidQuality();
+                    vQuality.VidNo = NewDownloadInfo.SelectedVidQuality.ToString();
+                    IsCrossFormat = NewDownloadInfo.IsCrossFormat;
+                    CurrentAudQuality = aQuality;
+                    CurrentVidQuality = vQuality;
+                    downloader.DownloadVideo("https://www.youtube.com/watch/?v=" + NewDownloadInfo.VidID, DownloadType.CustomQuality, aQuality, vQuality);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Completed playlist download", "Finished", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            downloader.DownloadCompleted += Downloader_DownloadCompleted;
+            downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
+            if (!ProgramConfigReader.VerifyConfigExists() || !ProgramConfigReader.VerifyRunProgramExists())
+            {
+                MessageBox.Show("Config file cannot be loaded!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            else
+            {
+                Cfgdata = ProgramConfigReader.GetCurrentConfigData();
+                if (Cfgdata.DownloadLocation == "Default")
+                {
+                    IsDefaultSaveLoc = true;
+                }
+                else
+                {
+                    IsDefaultSaveLoc = false;
+                }
+                SaveLoc = Cfgdata.DownloadLocation;
+                if (Cfgdata.IsUsingThumbnail)
+                {
+                    IsUsingMP3Thumbnail = true;
+                }
+                else
+                {
+                    IsUsingMP3Thumbnail = false;
+                }
+            }
+            
         }
     }
     public class VideoMetadataDisplay
@@ -267,5 +545,6 @@ namespace UpdatedUIApp
         public string VidTitle;
         public List<AudQuality> AudQualityList;
         public List<VidQuality> VidQualityList;
+        public bool IsCrossFormat;
     }
 }
