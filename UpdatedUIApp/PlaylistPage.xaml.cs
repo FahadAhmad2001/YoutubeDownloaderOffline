@@ -105,6 +105,7 @@ namespace UpdatedUIApp
                 newList.Add(new VideoMetadataDisplay() { VideoTitleText = scrape.VidTitle, VideoStatusText = "", VideoThumbnailURL = scrape.ThumbnailURL, VideoTotalSizeText = "Please select an audio and video quality", AudioCount = scrape.AudQualities.Count,VideoQualitiesList=QualitiesList });
             }
             ListOfVideos.ItemsSource = newList;
+            TotalVideos = VidQualityInfoList.Count;
             BindingOperations.EnableCollectionSynchronization(newList, ItemsControlLock);
         }
 
