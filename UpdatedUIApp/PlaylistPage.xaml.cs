@@ -44,9 +44,13 @@ namespace UpdatedUIApp
         string FileName = "";
         bool IsCrossFormat=false;
         bool IsDefaultSaveLoc = false;
+        bool IsdownloadingMP3 = false;
         string SaveLoc = "";
+        int TotalVideos = 0;
+        int CurrentVideo = 0;
         string Fileformat = "";
         bool IsUsingMP3Thumbnail = false;
+        object ItemsControlLock;
         public string AppPath = Directory.GetCurrentDirectory();
         VidQuality CurrentVidQuality = new VidQuality();
         AudQuality CurrentAudQuality = new AudQuality();
@@ -71,13 +75,14 @@ namespace UpdatedUIApp
             }
         }
         PlaylistMetadataScrape GlobalMetadataScrape;
+        List<VideoMetadataDisplay> newList = new List<VideoMetadataDisplay>();
         private void GetPlaylistMetadata()
         {
             MetadataScraper scraper = new MetadataScraper();
             GlobalMetadataScrape = scraper.GetPlaylistMetadata(playListURL);
-            List<VideoMetadataDisplay> newList = new List<VideoMetadataDisplay>();
             ListOfVideos.Background.Opacity = 0.45;
             VidQualityInfoList = new List<VideoQualityInfo>();
+            ItemsControlLock = new object();
             foreach (MetadataScrape scrape in GlobalMetadataScrape.VideoMetadataList)
             {
                 VideoQualityInfo VidQualInfo = new VideoQualityInfo();
@@ -100,6 +105,7 @@ namespace UpdatedUIApp
                 newList.Add(new VideoMetadataDisplay() { VideoTitleText = scrape.VidTitle, VideoStatusText = "", VideoThumbnailURL = scrape.ThumbnailURL, VideoTotalSizeText = "Please select an audio and video quality", AudioCount = scrape.AudQualities.Count,VideoQualitiesList=QualitiesList });
             }
             ListOfVideos.ItemsSource = newList;
+            BindingOperations.EnableCollectionSynchronization(newList, ItemsControlLock);
         }
 
         private void VideoComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -177,7 +183,11 @@ namespace UpdatedUIApp
                                 SelectedVidQuality = quality;
                             }
                         }
-                        if(CurrentItem.TryFindVisualChildByName("VideoFileSizeLabel", out Label label))
+                        if ((SelectedAudQuality.Format == "webm" && SelectedVidQuality.Format == "mp4") || (SelectedAudQuality.Format == "m4a" && SelectedVidQuality.Format == "webm"))
+                        {
+                            CurrentVidUpdated.IsCrossFormat = true;
+                        }
+                        if (CurrentItem.TryFindVisualChildByName("VideoFileSizeLabel", out Label label))
                         {
                             label.Content = "Total File Size: " + SelectedVidQuality.FileSize + " (VIDEO) + " + SelectedAudQuality.FileSize + " (AUDIO)";
                         }
@@ -275,8 +285,11 @@ namespace UpdatedUIApp
         {
             if (AllVideosInfoList.Count > 0)
             {
+                CurrentVideo = CurrentVideo + 1;
+                PlaylistStatus.Dispatcher.Invoke(new Action(() => PlaylistStatus.Content = "Status:["+CurrentVideo.ToString()+"/"+TotalVideos.ToString()+"] Downloading youtube.com/watch?v=" + AllVideosInfoList[0].VidID));
                 if (AllVideosInfoList[0].IsMP3Only)
                 {
+                    IsdownloadingMP3 = true;
                     if (IsUsingMP3Thumbnail)
                     {
                         CurrentDownloadID = AllVideosInfoList[0].VidID;
@@ -292,6 +305,7 @@ namespace UpdatedUIApp
                 }
                 else
                 {
+                    IsdownloadingMP3 = false;
                     CurrentDownloadType = DownloadType.CustomQuality;
                     CurrentDownloadID = AllVideosInfoList[0].VidID;
                     VideoQualityInfo NewDownloadInfo = AllVideosInfoList[0];
@@ -299,6 +313,20 @@ namespace UpdatedUIApp
                     aQuality.AudNo = NewDownloadInfo.SelectedAudQuality.ToString();
                     VidQuality vQuality = new VidQuality();
                     vQuality.VidNo = NewDownloadInfo.SelectedVidQuality.ToString();
+                    foreach (VidQuality quality in NewDownloadInfo.VidQualityList)
+                    {
+                        if (quality.VidNo == vQuality.VidNo)
+                        {
+                            vQuality.Format = quality.Format;
+                        }
+                    }
+                    foreach (AudQuality quality in NewDownloadInfo.AudQualityList)
+                    {
+                        if (quality.AudNo == aQuality.AudNo)
+                        {
+                            aQuality.Format = quality.Format;
+                        }
+                    }
                     IsCrossFormat = NewDownloadInfo.IsCrossFormat;
                     CurrentAudQuality = aQuality;
                     CurrentVidQuality = vQuality;
@@ -311,27 +339,37 @@ namespace UpdatedUIApp
         {
             if (ProgData.ProgType == ProgressType.ProgressChanged)
             {
-                foreach(VideoQualityInfo info in AllVideosInfoList)
+                lock (ItemsControlLock)
                 {
-                    if (info.VidID == ProgData.VidID)
+                    foreach (VideoQualityInfo info in AllVideosInfoList)
                     {
-                        foreach (object item in ListOfVideos.Items)
+                        if (info.VidID == ProgData.VidID)
                         {
-                            UIElement currentItem = (UIElement)ListOfVideos.ItemContainerGenerator.ContainerFromItem(item);
-                            ContentPresenter currentContentPresenter = (ContentPresenter)currentItem;
-                            DataTemplate currentDataTemplate = currentContentPresenter.ContentTemplate;
-                            if(currentItem.TryFindVisualChildByName("VideoProgressLabel",out Label label))
-                            {
-                                label.Content = "Status: " + ProgData.ProgressInfo;
-                            }
+                          //  foreach (object item in ListOfVideos.Items)
+                          //  {
+                              //  UIElement currentItem = (UIElement)ListOfVideos.ItemContainerGenerator.ContainerFromItem(item);
+                              //  ContentPresenter currentContentPresenter = (ContentPresenter)currentItem;
+                              //  DataTemplate currentDataTemplate = currentContentPresenter.ContentTemplate;
+                              //  if (currentItem.TryFindVisualChildByName("VideoProgressLabel", out Label label))
+                              //  {
+                              //      label.Content = "Status: " + ProgData.ProgressInfo;
+                              //  }
+                           // }
+                           foreach(VideoMetadataDisplay display in newList)
+                           {
+                                if (display.VideoTitleText == info.VidTitle)
+                                {
+                                    display.VideoStatusText = "Status: " + ProgData.ProgressInfo;
+                                }
+                           }
                         }
                     }
                 }
-                PlaylistStatus.Content = "Status: " + ProgData.ProgressInfo;
+                PlaylistStatus.Dispatcher.Invoke(new Action(() => PlaylistStatus.Content = "Status: [" + CurrentVideo.ToString() + "/" + TotalVideos.ToString() + "] " + ProgData.ProgressInfo));
             }
             else if (ProgData.ProgType == ProgressType.FileNameGotten)
             {
-                if (ProgData.DownType == DownloadType.MP3Only || ProgData.DownType == DownloadType.MP3Pic)
+                if (IsdownloadingMP3)
                 {
                     FileName = ProgData.ProgressInfo;
                     Fileformat = "mp3";
@@ -352,11 +390,15 @@ namespace UpdatedUIApp
                         }
                         else if (CurrentVidQuality.Format == "webm")
                         {
-                            FileName = ProgData.ProgressInfo + "webm";
+                            FileName = ProgData.ProgressInfo + ".webm";
                             Fileformat = "webm";
                         }
                     }
                 }
+            }
+            else if (ProgData.ProgType == ProgressType.Converting)
+            {
+                PlaylistStatus.Dispatcher.Invoke(new Action(() => PlaylistStatus.Content = "Status: [" + CurrentVideo.ToString() + "/" + TotalVideos.ToString() + "] Converting to MP3..."));
             }
         }
 
@@ -454,11 +496,14 @@ namespace UpdatedUIApp
             AllVideosInfoList.Remove(CurrentVid);
             if (AllVideosInfoList.Count > 0)
             {
+                CurrentVideo = CurrentVideo + 1;
+                PlaylistStatus.Dispatcher.Invoke(new Action(() => PlaylistStatus.Content = "Status: [" + CurrentVideo.ToString() + "/" + TotalVideos.ToString() + "] Downloading youtube.com/watch?v=" + AllVideosInfoList[0].VidID));
                 downloader = new YTDownloader();
                 downloader.DownloadCompleted += Downloader_DownloadCompleted;
                 downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
                 if (AllVideosInfoList[0].IsMP3Only)
                 {
+                    IsdownloadingMP3 = true;
                     if (IsUsingMP3Thumbnail)
                     {
                         CurrentDownloadID = AllVideosInfoList[0].VidID;
@@ -474,6 +519,7 @@ namespace UpdatedUIApp
                 }
                 else
                 {
+                    IsdownloadingMP3 = false;
                     CurrentDownloadType = DownloadType.CustomQuality;
                     CurrentDownloadID = AllVideosInfoList[0].VidID;
                     VideoQualityInfo NewDownloadInfo = AllVideosInfoList[0];
@@ -481,6 +527,20 @@ namespace UpdatedUIApp
                     aQuality.AudNo = NewDownloadInfo.SelectedAudQuality.ToString();
                     VidQuality vQuality = new VidQuality();
                     vQuality.VidNo = NewDownloadInfo.SelectedVidQuality.ToString();
+                    foreach(VidQuality quality in NewDownloadInfo.VidQualityList)
+                    {
+                        if (quality.VidNo == vQuality.VidNo)
+                        {
+                            vQuality.Format = quality.Format;
+                        }
+                    }
+                    foreach(AudQuality quality in NewDownloadInfo.AudQualityList)
+                    {
+                        if (quality.AudNo == aQuality.AudNo)
+                        {
+                            aQuality.Format = quality.Format;
+                        }
+                    }
                     IsCrossFormat = NewDownloadInfo.IsCrossFormat;
                     CurrentAudQuality = aQuality;
                     CurrentVidQuality = vQuality;
@@ -489,6 +549,7 @@ namespace UpdatedUIApp
             }
             else
             {
+                PlaylistStatus.Dispatcher.Invoke(new Action(() => PlaylistStatus.Content = "Status:"));
                 MessageBox.Show("Completed playlist download", "Finished", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
