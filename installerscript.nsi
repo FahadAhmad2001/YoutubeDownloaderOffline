@@ -24,15 +24,18 @@ AutoCloseWindow false
 ShowInstDetails show
 Section ""
 SetOutPath $INSTDIR
-File /nonfatal /a /r "UpdatedUIApp\bin\Debug"
+SetOverwrite On
+File /nonfatal /a /r "UpdatedUIApp\bin\Debug\"
 SectionEnd
 Section "Install Backend Server"
 SetOutPath "$INSTDIR\Server"
-File /nonfatal /a /r "YTDLBackendServer\bin\Debug"
+SetOverwrite On
+File /nonfatal /a /r "YTDLBackendServer\bin\Debug\"
 SectionEnd
 Section "Install Source Code"
 SetOutPath "$INSTDIR\Source"
-File /nonfatal /a /r "SourceCode"
+SetOverwrite On
+File /nonfatal /a /r "SourceCode\"
 SectionEnd
 Section "Create Shortcut on Desktop"
 SetOutPath $INSTDIR
