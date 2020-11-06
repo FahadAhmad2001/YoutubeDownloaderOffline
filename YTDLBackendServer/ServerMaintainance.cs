@@ -26,7 +26,8 @@ namespace YTDLBackendServer
             Log.WriteLog(LogType.Info, "Checking for youtube-dl updates...");
             YTDLUpdater updater = new YTDLUpdater();
             updater.UpdatingDownloader += Updater_UpdatingDownloader;
-            updater.UpdateYTDL();
+            updater.DownloaderUpdateError += Updater_DownloaderUpdateError;
+            updater.CheckYTDLUpdates();
             Log.WriteLog(LogType.Info, "Checking and deleting any old files...");
             string[] webmFiles = Directory.GetFiles(folderPath, "*.webm");
             foreach (string eachFile in webmFiles)
@@ -86,6 +87,12 @@ namespace YTDLBackendServer
             Log.WriteLog(LogType.Info, "Maintainance complete, deleting maintainance.lck...");
             File.Delete(folderPath + "\\maintainance.lck");
             Log.WriteLog(LogType.Info, "Next maintainance after 4 hours");
+        }
+
+        private void Updater_DownloaderUpdateError(string message)
+        {
+            //throw new NotImplementedException();
+            Log.WriteLog(LogType.Error, "Failed to update youtube-dlc:\n" + message + "\n If this continues to occur please make sure your Internet works and try redownloading the program\nIf it still doesn't work please file an issue at https://github.com/FahadAhmad2001/YoutubeDownloaderOffline/issues");
         }
 
         private void Updater_UpdatingDownloader(string version)

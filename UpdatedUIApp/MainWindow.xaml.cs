@@ -64,7 +64,8 @@ namespace UpdatedUIApp
 
             YTDLUpdater updater = new YTDLUpdater();
             updater.UpdatingDownloader += Updater_UpdatingDownloader;
-            updater.UpdateYTDL();
+            updater.DownloaderUpdateError += Updater_DownloaderUpdateError;
+            updater.CheckYTDLUpdates();
             if (ProgramConfigReader.GetCurrentConfigData().IsAutoCheckUpdate)
             {
                 VersionInfo info = ProgramConfigReader.GetLatestVersion();
@@ -80,6 +81,13 @@ namespace UpdatedUIApp
             }
             Mainframe.Navigate(new Uri("DownloadPage.xaml", UriKind.Relative));
         }
+
+        private void Updater_DownloaderUpdateError(string message)
+        {
+            // throw new NotImplementedException();
+            MessageBox.Show("Failed to update youtube-dlc:\n" + message + "\n If this continues to occur please make sure your Internet works and try redownloading the program\nIf it still doesn't work please file an issue at https://github.com/FahadAhmad2001/YoutubeDownloaderOffline/issues", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
         private void Updater_UpdatingDownloader(string version)
         {
             // throw new NotImplementedException();

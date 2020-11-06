@@ -71,8 +71,8 @@ Public Class Form1
     Dim CrntDwnldVidFormat As String
     Dim CrntDwnldAudFormat As String
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error, Handle)
-        TaskbarManager.Instance.SetProgressValue(40, 100, Handle)
+        'TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error, Handle)
+        'TaskbarManager.Instance.SetProgressValue(40, 100, Handle)
         NotifyIcon1.Text = "Successfully downloaded"
         NotifyIcon1.Visible = True
         NotifyIcon1.Icon = Icon.ExtractAssociatedIcon("icon.ico")

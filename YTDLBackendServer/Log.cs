@@ -4,16 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Threading;
 
 namespace YTDLBackendServer
 {
     public class Log
     {
+        static string CurrentLogContents = "";
         public static void WriteLog(LogType type, string content)
         {
             string logContent = type.ToString().ToUpper() + ": " + content;
             Console.WriteLine(DateTime.Now + " " + logContent);
-            File.AppendAllText("server.log", DateTime.Now + "    " + logContent + "\n");
+            CurrentLogContents = CurrentLogContents + DateTime.Now + "    " + logContent + "\n";
         }
         public static void StartLog()
         {
@@ -21,6 +23,12 @@ namespace YTDLBackendServer
             {
                 File.Delete("server.log");
             }
+            Timer loggingInterval = new Timer(FlushLog, null, 0, 100);
+        }
+        public static void FlushLog(object o)
+        {
+            File.AppendAllText("server.log", CurrentLogContents);
+            CurrentLogContents = "";
         }
     }
     public enum LogType
