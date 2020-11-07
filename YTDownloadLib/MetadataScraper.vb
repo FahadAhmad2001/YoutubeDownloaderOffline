@@ -5,7 +5,7 @@ Public Class MetadataScraper
     Dim CurrentFolder As String = Directory.GetCurrentDirectory()
     Public Function GetThumbnail(ByVal url As String) As String
         Dim GetThumbProc As Process = New Process()
-        Dim GetThumbInfo As ProcessStartInfo = New ProcessStartInfo(CurrentFolder & "\youtube-dl.exe")
+        Dim GetThumbInfo As ProcessStartInfo = New ProcessStartInfo(CurrentFolder & "\youtube-dlc.exe")
         GetThumbInfo.UseShellExecute = False
         GetThumbInfo.CreateNoWindow = True
         GetThumbInfo.RedirectStandardOutput = True
@@ -32,7 +32,7 @@ Public Class MetadataScraper
     End Sub
     Public Function GetTitle(ByVal url As String) As String
         Dim GetTitleProc As Process = New Process()
-        Dim GetTitleInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dl.exe")
+        Dim GetTitleInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dlc.exe")
         GetTitleInfo.UseShellExecute = False
         GetTitleInfo.CreateNoWindow = True
         GetTitleInfo.RedirectStandardOutput = True
@@ -47,7 +47,7 @@ Public Class MetadataScraper
     End Function
     Public Function GetAudioQualities(ByVal url As String) As List(Of AudQuality)
         Dim GetAudQual As Process = New Process()
-        Dim GetAudQualInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dl.exe")
+        Dim GetAudQualInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dlc.exe")
         GetAudQualInfo.UseShellExecute = False
         GetAudQualInfo.RedirectStandardOutput = True
         GetAudQualInfo.CreateNoWindow = True
@@ -89,7 +89,7 @@ Public Class MetadataScraper
     End Function
     Public Function GetVideoQualities(ByVal url As String) As List(Of VidQuality)
         Dim GetVidQual As Process = New Process()
-        Dim GetVidQualInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dl.exe")
+        Dim GetVidQualInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dlc.exe")
         GetVidQualInfo.UseShellExecute = False
         GetVidQualInfo.RedirectStandardOutput = True
         GetVidQualInfo.CreateNoWindow = True
@@ -98,6 +98,7 @@ Public Class MetadataScraper
         GetVidQual.StartInfo = GetVidQualInfo
         GetVidQual.Start()
         Dim output As String
+        Dim error1 As String
         output = GetVidQual.StandardOutput.ReadToEnd()
         GetVidQual.WaitForExit()
         GetVidQual.Close()
@@ -160,7 +161,7 @@ Public Class MetadataScraper
     Public Function GetPlaylistMetadata(ByVal playlistURL As String) As PlaylistMetadataScrape
         Dim list As List(Of MetadataScrape) = New List(Of MetadataScrape)
         Dim GetVidList As Process = New Process()
-        Dim GetVidListInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dl.exe")
+        Dim GetVidListInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dlc.exe")
         GetVidListInfo.UseShellExecute = False
         GetVidListInfo.RedirectStandardOutput = True
         GetVidListInfo.CreateNoWindow = True
@@ -173,7 +174,7 @@ Public Class MetadataScraper
         GetVidList.WaitForExit()
         GetVidList.Close()
         Dim GetVidQual As Process = New Process()
-        Dim GetVidQualInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dl.exe")
+        Dim GetVidQualInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dlc.exe")
         GetVidQualInfo.UseShellExecute = False
         GetVidQualInfo.RedirectStandardOutput = True
         GetVidQualInfo.CreateNoWindow = True
@@ -185,8 +186,9 @@ Public Class MetadataScraper
         QualOutput = GetVidQual.StandardOutput.ReadToEnd()
         GetVidQual.WaitForExit()
         GetVidQual.Close()
+        Console.WriteLine(QualOutput)
         Dim GetVidThumbnail As Process = New Process()
-        Dim GetVidThumbnailInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dl.exe")
+        Dim GetVidThumbnailInfo As ProcessStartInfo = New ProcessStartInfo("youtube-dlc.exe")
         GetVidThumbnailInfo.UseShellExecute = False
         GetVidThumbnailInfo.RedirectStandardOutput = True
         GetVidThumbnailInfo.CreateNoWindow = True

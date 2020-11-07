@@ -8,6 +8,7 @@ using YTDownloadLib;
 using System.IO;
 using System.Net;
 using System.Xml;
+using System.Text.RegularExpressions;
 
 namespace YTDLBackendServer
 {
@@ -322,6 +323,30 @@ namespace YTDLBackendServer
                     {
                         if (download.VidID==ProgData.VidID && download.aQuality.AudNo == ProgData.AudQual.AudNo && download.vQuality.VidNo == ProgData.VidQual.VidNo)
                         {
+                            if (File.Exists(downloadPath + "\\" + download.OriginalFileName))
+                            {
+                                try
+                                {
+                                    File.Copy(downloadPath + "\\" + download.OriginalFileName, downloadPath + "\\" + download.FileName);
+                                    if (File.Exists(downloadPath + "\\" + download.FileName))
+                                    {
+                                        File.Delete(downloadPath + "\\" + download.OriginalFileName);
+                                    }
+                                    else
+                                    {
+                                        Log.WriteLog(LogType.Error, "Failed to rename downloaded file from " + download.OriginalFileName + " to " + download.FileName);
+                                    }
+                                }
+                                catch(Exception ex)
+                                {
+
+                                }
+                                
+                            }
+                            else
+                            {
+                                Log.WriteLog(LogType.Warning, "Unable to find original file for download with video ID " + download.VidID + ", user may not be able to download it\nOriginal file name: " + download.OriginalFileName + "\nModified file name: " + download.FileName);
+                            }
                             string linkName = download.FileName.Replace(' ', '*');
                             linkName = linkName.Replace('&', '|');
                             linkName = linkName.Replace('=', '<');
@@ -353,22 +378,58 @@ namespace YTDLBackendServer
                 Log.WriteLog(LogType.General, "setting filename for download vidID:" + download.VidID);
                 if (download.DownType == DownloadType.MP3Only || download.DownType == DownloadType.MP3Pic)
                 {
-                    correctDownload.FileName = fileName;
+                    if(fileName.Contains("-" + correctDownload.VidID + ".mp3"))
+                    {
+                        string[] newFileName = Regex.Split(fileName, "-" + correctDownload.VidID);
+                        correctDownload.FileName = newFileName[0] + ".mp3";
+                    }
+                    else
+                    {
+                        correctDownload.FileName = fileName;
+                    }
+                    correctDownload.OriginalFileName = fileName;
                 }
                 else
                 {
                     //need to figure out how to get file extension, currently it has to be passed in QueryString for non-MP3 downloads....
                     if (download.context.Request.QueryString.GetValues(download.context.Request.QueryString.AllKeys[4])[0] == "webm" && download.context.Request.QueryString.GetValues(download.context.Request.QueryString.AllKeys[5])[0] == "webm")
                     {
-                        correctDownload.FileName = fileName + ".webm";
+                        if (fileName.Contains("-" + correctDownload.VidID))
+                        {
+                            string[] newFileName = Regex.Split(fileName, "-" + correctDownload.VidID);
+                            correctDownload.FileName = newFileName[0] + ".webm";
+                        }
+                        else
+                        {
+                            correctDownload.FileName = fileName + ".webm";
+                        }
+                        correctDownload.OriginalFileName = fileName + ".webm";
                     }
                     else if (download.context.Request.QueryString.GetValues(download.context.Request.QueryString.AllKeys[4])[0] == "mp4" && download.context.Request.QueryString.GetValues(download.context.Request.QueryString.AllKeys[5])[0] == "m4a")
                     {
-                        correctDownload.FileName = fileName + ".mp4";
+                        if (fileName.Contains("-" + correctDownload.VidID))
+                        {
+                            string[] newFileName = Regex.Split(fileName, "-" + correctDownload.VidID);
+                            correctDownload.FileName = newFileName[0] + ".mp4";
+                        }
+                        else
+                        {
+                            correctDownload.FileName = fileName + ".mp4";
+                        }
+                        correctDownload.OriginalFileName = fileName + ".mp4";
                     }
                     else
                     {
-                        correctDownload.FileName = fileName + ".mkv";
+                        if (fileName.Contains("-" + correctDownload.VidID))
+                        {
+                            string[] newFileName = Regex.Split(fileName, "-" + correctDownload.VidID);
+                            correctDownload.FileName = newFileName[0] + ".mkv";
+                        }
+                        else
+                        {
+                            correctDownload.FileName = fileName + ".mkv";
+                        }
+                        correctDownload.OriginalFileName = fileName + ".mkv";
                     }
                 }
                 Log.WriteLog(LogType.General, "set filename to " + download.FileName);
@@ -387,6 +448,7 @@ namespace YTDLBackendServer
         public VidQuality vQuality;
         public AudQuality aQuality;
         public string FileName;
+        public string OriginalFileName;
         public string VidID;
         public DownloadType DownType;
     }

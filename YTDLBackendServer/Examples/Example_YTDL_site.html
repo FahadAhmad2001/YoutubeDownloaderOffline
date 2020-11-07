@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Example Youtube downloader</title>
+    <script src="Example_YTDL_script.js"></script>
+</head>
+<body>
+    <h1>Example Youtube downloaader</h1>
+    <p>Video link:</p>
+    <button id="MetadataButton" onclick="GetVideoMetadata()">Get Metadata</button>
+    <input type="text" id="VidURL"/>
+    <h3 id="VidTitle"></h3>
+    <img src="" id="Thumbnail"/>
+    <h4>Use Thumbnail when downloading MP3 (Checkbox)</h4>
+    <input type="checkbox" id="UseThumbnail" />
+    <select id="Videos"></select>
+    <select id="Audios"></select>
+    <button id="DownloadVideoButton" onclick="DownloadVideo()">Download</button>
+    <h4 id="ProgressText"></h4>
+</body>
+</html>

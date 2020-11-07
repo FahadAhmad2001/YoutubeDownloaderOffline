@@ -25,15 +25,15 @@ Public Class YTDownloader
         Dim editBAT As StreamWriter
         editBAT = New StreamWriter(Directory.GetCurrentDirectory & "\VidDownload.bat")
         If DownType = DownloadType.Standard Then
-            editBAT.WriteLine("youtube-dl " & url & " --newline")
+            editBAT.WriteLine("youtube-dlc " & url & " --newline")
         ElseIf DownType = DownloadType.CustomQuality Then
-            editBAT.WriteLine("youtube-dl -f" & vidqual.VidNo & "+" & audqual.AudNo & " " & url & " --newline")
+            editBAT.WriteLine("youtube-dlc -f" & vidqual.VidNo & "+" & audqual.AudNo & " " & url & " --newline")
             AudQualt = audqual
             VidQualt = vidqual
         ElseIf DownType = DownloadType.MP3Only Then
-            editBAT.WriteLine("youtube-dl --extract-audio --audio-format mp3 --newline " & url)
+            editBAT.WriteLine("youtube-dlc --extract-audio --audio-format mp3 --newline " & url)
         ElseIf DownType = DownloadType.MP3Pic Then
-            editBAT.WriteLine("youtube-dl --extract-audio --audio-format mp3 --newline --embed-thumbnail " & url)
+            editBAT.WriteLine("youtube-dlc --extract-audio --audio-format mp3 --newline --embed-thumbnail " & url)
         End If
         editBAT.Close()
         DownloadVid.StartInfo = DownloadVidInfo
@@ -65,6 +65,7 @@ Public Class YTDownloader
                 prog.ProgType = ProgressType.Converting
                 prog.ProgressInfo = "Converting to MP3..."
                 prog.VidID = VidID
+                prog.CommandLineInfo = output.Data
                 RaiseEvent DownloadProgressChanged(prog)
             End If
             If output.Data.ToString().Contains("[download] Destination: ") And (DownType = DownloadType.CustomQuality) Then
@@ -87,6 +88,7 @@ Public Class YTDownloader
                 prog.AudQual = AudQualt
                 prog.VidQual = VidQualt
                 prog.VidID = VidID
+                prog.CommandLineInfo = output.Data.ToString()
                 RaiseEvent DownloadProgressChanged(prog)
 EndRaiseEvent:
             End If
@@ -115,6 +117,7 @@ EndRaiseEvent:
                 prog.AudQual = AudQualt
                 prog.VidQual = VidQualt
                 prog.VidID = VidID
+                prog.CommandLineInfo = output.Data
                 RaiseEvent DownloadProgressChanged(prog)
             End If
         End If
@@ -152,4 +155,5 @@ Public Structure DownloadProgress
     Dim AudQual As AudQuality
     Dim VidQual As VidQuality
     Dim VidID As String
+    Dim CommandLineInfo As String
 End Structure

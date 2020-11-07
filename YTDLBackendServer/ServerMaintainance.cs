@@ -36,6 +36,7 @@ namespace YTDLBackendServer
                 TimeSpan difference = DateTime.Now.Subtract(lastModified);
                 if (difference.Hours > 4)
                 {
+                    Log.WriteLog(LogType.Info, "Deleting " + eachFile + " as the time diff is more than 4 hours (" + difference.ToString() + ")");
                     File.Delete(eachFile);
                 }
 
@@ -47,6 +48,7 @@ namespace YTDLBackendServer
                 TimeSpan difference = DateTime.Now.Subtract(lastModified);
                 if (difference.Hours > 4)
                 {
+                    Log.WriteLog(LogType.Info, "Deleting " + eachFile + " as the time diff is more than 4 hours (" + difference.ToString() + ")");
                     File.Delete(eachFile);
                 }
 
@@ -58,6 +60,7 @@ namespace YTDLBackendServer
                 TimeSpan difference = DateTime.Now.Subtract(lastModified);
                 if (difference.Hours > 4)
                 {
+                    Log.WriteLog(LogType.Info, "Deleting " + eachFile + " as the time diff is more than 4 hours (" + difference.ToString() + ")");
                     File.Delete(eachFile);
                 }
 
@@ -69,6 +72,7 @@ namespace YTDLBackendServer
                 TimeSpan difference = DateTime.Now.Subtract(lastModified);
                 if (difference.Hours > 4)
                 {
+                    Log.WriteLog(LogType.Info, "Deleting " + eachFile + " as the time diff is more than 4 hours (" + difference.ToString() + ")");
                     File.Delete(eachFile);
                 }
 
@@ -80,6 +84,7 @@ namespace YTDLBackendServer
                 TimeSpan difference = DateTime.Now.Subtract(lastModified);
                 if (difference.Hours > 4)
                 {
+                    Log.WriteLog(LogType.Info, "Deleting " + eachFile + " as the time diff is more than 4 hours (" + difference.ToString() + ")");
                     File.Delete(eachFile);
                 }
 
@@ -98,7 +103,7 @@ namespace YTDLBackendServer
         private void Updater_UpdatingDownloader(string version)
         {
             //throw new NotImplementedException();
-            Log.WriteLog(LogType.Info, "Updating youtube-dl to version " + version);
+            Log.WriteLog(LogType.Info, "Updating youtube-dlc to version " + version);
         }
     }
 }

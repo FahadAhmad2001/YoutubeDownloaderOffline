@@ -23,9 +23,9 @@ namespace YTDLBackendServer
             {
                 File.Delete("server.log");
             }
-            Timer loggingInterval = new Timer(FlushLog, null, 0, 100);
+            Timer loggingInterval = new Timer(FlushLog, null, 0, 50);
         }
-        public static void FlushLog(object o)
+        private static void FlushLog(object o)
         {
             File.AppendAllText("server.log", CurrentLogContents);
             CurrentLogContents = "";
