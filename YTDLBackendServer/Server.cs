@@ -31,6 +31,7 @@ namespace YTDLBackendServer
             }
             listener = new HttpListener();
             listener.Prefixes.Add("http://+:" + port.ToString() + "/getmetadata/");
+            listener.Prefixes.Add("http://+:" + port.ToString() + "/getplaylistmetadata/");
             listener.Prefixes.Add("http://+:" + port.ToString() + "/downloadvid/");
             listener.Prefixes.Add("http://+:" + port.ToString() + "/download/");
             Log.WriteLog(LogType.Info, "Attempting to listen on http://0.0.0.0:" + port.ToString() + "/");
@@ -101,6 +102,85 @@ namespace YTDLBackendServer
                         writer.WriteAttributeString("format", quality.Format);
                         writer.WriteAttributeString("size", quality.FileSize);
                         writer.WriteAttributeString("ID",quality.AudNo);
+                        writer.WriteEndElement();
+                    }
+                    writer.WriteEndElement();
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                }
+                string xmlString = ASCIIEncoding.UTF8.GetString(xmlData.ToArray());
+                if (request.HttpMethod == "OPTIONS")
+                {
+                    response.AddHeader("Access-Control-Allow-Headers", "*");
+                }
+                response.AppendHeader("Access-Control-Allow-Origin", "*");
+                byte[] buffer = Encoding.UTF8.GetBytes(xmlString);
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
+                context.Response.ContentType = "text/xml; encoding='utf-8'";
+                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                Log.WriteLog(LogType.Info, "Successfully sent output");
+                response.Close();
+            }
+            else if (request.RawUrl.Contains("getplaylistmetadata"))
+            {
+            StartCheckMaintainance:
+                if (File.Exists(downloadPath + "\\maintainance.lck"))
+                {
+                    Log.WriteLog(LogType.Info, "Delaying request for 4 seconds as maintainance is currently running");
+                    Thread.Sleep(4000);
+                    goto StartCheckMaintainance;
+                }
+                string playlistID = request.QueryString.GetValues(request.QueryString.AllKeys[0])[0];
+                string playlistURL = "https://www.youtube.com/playlist?list=" + playlistID;
+                MetadataScraper scraper = new MetadataScraper();
+                PlaylistMetadataScrape playlistScrape = scraper.GetPlaylistMetadata(playlistURL);
+                HttpListenerResponse response = context.Response;
+                MemoryStream xmlData = new MemoryStream();
+                using (XmlWriter writer = XmlWriter.Create(xmlData))
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("PlaylistMetadata");
+                    writer.WriteStartElement("PlaylistID");
+                    writer.WriteString(playlistID);
+                    writer.WriteEndElement();
+                    writer.WriteStartElement("PlaylistName");
+                    writer.WriteString(playlistScrape.PlaylistName);
+                    writer.WriteEndElement();
+                    writer.WriteStartElement("Videos");
+                    foreach(MetadataScrape eachVideo in playlistScrape.VideoMetadataList)
+                    {
+                        writer.WriteStartElement("VideoMetadata");
+                        writer.WriteStartElement("VideoID");
+                        writer.WriteString(eachVideo.VidID);
+                        writer.WriteEndElement();
+                        writer.WriteStartElement("Title");
+                        writer.WriteString(eachVideo.VidTitle);
+                        writer.WriteEndElement();
+                        writer.WriteStartElement("ThumbnailURL");
+                        writer.WriteString(eachVideo.ThumbnailURL);
+                        writer.WriteEndElement();
+                        writer.WriteStartElement("VideoQualities");
+                        foreach (VidQuality quality in eachVideo.VidQualities)
+                        {
+                            writer.WriteStartElement("vidquality");
+                            writer.WriteAttributeString("format", quality.Format);
+                            writer.WriteAttributeString("size", quality.FileSize);
+                            writer.WriteAttributeString("resolution", quality.Resolution);
+                            writer.WriteAttributeString("ID", quality.VidNo);
+                            writer.WriteEndElement();
+                        }
+                        writer.WriteEndElement();
+                        writer.WriteStartElement("AudioQualities");
+                        foreach (AudQuality quality in eachVideo.AudQualities)
+                        {
+                            writer.WriteStartElement("audquality");
+                            writer.WriteAttributeString("format", quality.Format);
+                            writer.WriteAttributeString("size", quality.FileSize);
+                            writer.WriteAttributeString("ID", quality.AudNo);
+                            writer.WriteEndElement();
+                        }
+                        writer.WriteEndElement();
                         writer.WriteEndElement();
                     }
                     writer.WriteEndElement();

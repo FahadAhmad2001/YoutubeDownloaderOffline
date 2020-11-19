@@ -23,7 +23,7 @@ namespace YTDLBackendServer
             {
                 File.Delete("server.log");
             }
-            Timer loggingInterval = new Timer(FlushLog, null, 0, 50);
+            Timer loggingInterval = new Timer(FlushLog, null, 0, 1000);
         }
         private static void FlushLog(object o)
         {

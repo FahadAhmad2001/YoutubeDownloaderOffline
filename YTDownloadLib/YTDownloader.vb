@@ -107,7 +107,12 @@ EndRaiseEvent:
                 output7 = Regex.Split(CurrentProgress, "Downloading: ")
                 CurrentProgress = output7(1)
                 Dim IntProgress As Integer
-                Dim DecProgress As Decimal = Decimal.Parse(CurrentProgress)
+                Dim DecProgress As Decimal
+                If CurrentProgress.Contains("Resuming download at") Then
+                    DecProgress = 0.0
+                Else
+                    DecProgress = Decimal.Parse(CurrentProgress)
+                End If
                 IntProgress = DecProgress * 10
                 'ProgressBar1.Value = IntProgress
                 Dim prog As DownloadProgress = New DownloadProgress()

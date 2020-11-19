@@ -33,6 +33,14 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="CheckboxImage" TargetType="Image">
+            <Setter Property="Opacity" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="true">
+                    <Setter Property="StackPanel.Opacity" Value="0.5" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
     <Grid Width="792" Height="348.992">
         <Label Content="Playlist Downloader" HorizontalAlignment="Left" Margin="49.887,15.169,0,0" VerticalAlignment="Top" Foreground="White" FontSize="20"/>
@@ -78,7 +86,11 @@
                                 <ColumnDefinition Width="200"/>
                             </Grid.ColumnDefinitions>
                             <Image HorizontalAlignment="Left" Height="100" Width="175" x:Name="VideoThumbnailImage" Stretch="Fill" Source="{Binding VideoThumbnailURL}" Grid.Column="0"></Image>
+                            <Image HorizontalAlignment="Left" Height="100" Width="175" x:Name="OverlayYesNo" Stretch="Fill" Source="Resources/tickmark_2.jpg" Grid.Column="0" Style="{StaticResource CheckboxImage}">
+                                
+                            </Image>
                             <Label x:Name="VideoTitleLabel" Content="{Binding VideoTitleText}" Foreground="White" Grid.Column="1" VerticalAlignment="Top" FontSize="16" FontWeight="Bold"></Label>
+                            
                             <Label x:Name="VideoFileSizeLabel" Content="{Binding VideoTotalSizeText}" Foreground="White" FontSize="14" Grid.Column="1" Margin="0,0,0,35" VerticalAlignment="Bottom"></Label>
                             <Label x:Name="VideoProgressLabel" Content="{Binding VideoStatusText}" Foreground="White" FontSize="14" Grid.Column="1" VerticalAlignment="Bottom"></Label>
                             <ComboBox x:Name="VideoComboBox" SelectionChanged="VideoComboBox_SelectionChanged" Grid.Column="2" Width="147.731" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,50" ItemsSource="{Binding VideoQualitiesList}"></ComboBox>

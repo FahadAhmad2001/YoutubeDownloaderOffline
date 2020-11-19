@@ -161,5 +161,11 @@
   <ItemGroup>
     <Resource Include="Resources\back_blurred.jpg" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\tickmark.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\tickmark_2.jpg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

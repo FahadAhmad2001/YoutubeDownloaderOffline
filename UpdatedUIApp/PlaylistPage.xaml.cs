@@ -108,7 +108,7 @@ namespace UpdatedUIApp
             TotalVideos = VidQualityInfoList.Count;
             BindingOperations.EnableCollectionSynchronization(newList, ItemsControlLock);
         }
-
+        
         private void VideoComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             //MessageBox.Show(ListOfVideos.Items.CurrentPosition.ToString());
